@@ -1,0 +1,19 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Job {
+    id Int @default(autoincrement()) @id
+    name String
+    size Int
+    completed Int
+    status String
+    started DateTime @default(now())
+    ended DateTime?
+}

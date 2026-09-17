@@ -1,0 +1,12 @@
+{
+    "name": "@jobber/products",
+    "version": "0.0.0",
+    "dependencies": {
+        "drizzle-orm": "^0.45.2",
+        "pg": "^8.23.0",
+        "drizzle-kit": "^0.31.10"
+    },
+    "devDependencies": {
+        "@types/pg": "^8.21.0"
+    }
+}

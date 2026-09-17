@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1786990064878,
+      "tag": "0000_abandoned_rick_jones",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787391346324,
+      "tag": "0001_brown_shockwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787391788930,
+      "tag": "0002_seed-categories",
+      "breakpoints": true
+    }
+  ]
+}

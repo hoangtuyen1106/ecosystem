@@ -1,0 +1,8 @@
+{
+  "name": "@jobber/prisma",
+  "version": "0.0.0",
+  "dependencies": {
+    "@prisma/client": "^7.8.0",
+    "prisma": "^7.8.0"
+  }
+}

@@ -1,0 +1,25 @@
+import { Packages } from '@jobber/grpc';
+import { Jobs } from '@jobber/nestjs';
+import { FibonacciMessage, PulsarClient } from '@jobber/pulsar';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { iterate } from 'fibonacci';
+import { JobConsumer } from '../job.consumer';
+
+@Injectable()
+export class FibonacciConsumer
+  extends JobConsumer<FibonacciMessage>
+  implements OnModuleInit
+{
+  constructor(
+    @Inject(Packages.JOBS) clientJobs: ClientGrpc,
+    pulsarClient: PulsarClient,
+  ) {
+    super(Jobs.FIBONACCI, pulsarClient, clientJobs);
+  }
+
+  protected async execute(data: FibonacciMessage): Promise<void> {
+    const result = iterate(data.iterations);
+    this.logger.log(result);
+  }
+}
