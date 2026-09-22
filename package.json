@@ -1,9 +1,9 @@
 {
-  "name": "@jobber/source",
+  "name": "@ecosystem/source",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=8192' nx run-many -t serve -p auth jobs executor products --parallel 4 --output-style=stream",
+    "start": "NODE_OPTIONS='--max-old-space-size=8192' nx run-many -t serve -p auth jobs executor products bff --parallel 5 --output-style=stream",
     "stop": "lsof -ti :3000 -ti :3001 -ti :3002 -ti :3003 | xargs kill -9 2>/dev/null || echo 'No servers running'",
     "docker:infra": "docker compose up -d",
     "docker:apps": "docker compose -f docker-compose.apps.yaml up --build",
@@ -39,6 +39,7 @@
     "fibonacci": "^1.6.12",
     "graphql": "^16.14.2",
     "graphql-type-json": "^0.3.2",
+    "ioredis": "^6.0.0",
     "module-alias": "^2.3.4",
     "nestjs-pino": "^4.6.1",
     "passport": "^0.7.0",
@@ -52,11 +53,11 @@
     "uuid": "^14.0.1"
   },
   "_moduleAliases": {
-    "@jobber/grpc": "dist/libs/grpc/main",
-    "@jobber/graphql": "dist/libs/graphql/main",
-    "@jobber/pulsar": "dist/libs/pulsar/main",
-    "@jobber/nestjs": "dist/libs/nestjs/main",
-    "@jobber/prisma": "dist/libs/prisma/main"
+    "@ecosystem/grpc": "dist/libs/grpc/main",
+    "@ecosystem/graphql": "dist/libs/graphql/main",
+    "@ecosystem/pulsar": "dist/libs/pulsar/main",
+    "@ecosystem/nestjs": "dist/libs/nestjs/main",
+    "@ecosystem/prisma": "dist/libs/prisma/main"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

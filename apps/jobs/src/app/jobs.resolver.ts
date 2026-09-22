@@ -3,7 +3,7 @@ import { JobMetadata } from './models/job-metadata.model';
 import { JobsService } from './jobs.service';
 import { ExecuteJobInput } from './dto/execute-job.input';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from '@jobber/graphql';
+import { GqlAuthGuard } from '@ecosystem/graphql';
 import { Job } from './models/job.model';
 
 @Resolver()

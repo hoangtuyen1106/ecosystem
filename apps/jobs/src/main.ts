@@ -1,10 +1,10 @@
 require('module-alias/register');
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { init } from '@jobber/nestjs';
+import { init } from '@ecosystem/nestjs';
 import { GrpcOptions, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { Packages } from '@jobber/grpc';
+import { Packages } from '@ecosystem/grpc';
 import { join } from 'path';
 
 async function bootstrap() {

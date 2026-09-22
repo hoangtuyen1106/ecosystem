@@ -3,8 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { JobsModule } from './jobs.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { LoggerModule } from '@jobber/nestjs';
-import { GqlLoggingPlugin } from '@jobber/graphql';
+import { LoggerModule } from '@ecosystem/nestjs';
+import { GqlLoggingPlugin } from '@ecosystem/graphql';
 import { UploadsModule } from './uploads/uploads.module';
 import { PrismaModule } from './prisma/prisma.module';
 

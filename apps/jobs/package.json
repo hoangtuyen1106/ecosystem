@@ -1,5 +1,5 @@
 {
-  "name": "@jobber/jobs",
+  "name": "@ecosystem/jobs",
   "version": "0.0.0",
   "devDependencies": {
     "@types/multer": "^2.2.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@jobber/prisma",
+  "name": "@ecosystem/prisma",
   "version": "0.0.0",
   "dependencies": {
     "@prisma/client": "^7.8.0",

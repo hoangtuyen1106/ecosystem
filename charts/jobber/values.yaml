@@ -57,7 +57,7 @@ postgresql:
 jobs:
   enabled: true
   replicas: 1
-  image: 'jobber/jobs:latest'
+  image: 'ecosystem/jobs:latest'
   port:
     http: 3001
     grpc: 5002
@@ -65,13 +65,13 @@ jobs:
 executor:
   enabled: true
   replicas: 1
-  image: 'jobber/executor:latest'
+  image: 'ecosystem/executor:latest'
   port: 3002
 
 auth:
   enabled: true
   replicas: 1
-  image: 'jobber/auth:latest'
+  image: 'ecosystem/auth:latest'
   port:
     http: 3000
     grpc: 5000
@@ -82,7 +82,7 @@ auth:
 products:
   enabled: true
   replicas: 1
-  image: 'jobber/products:latest'
+  image: 'ecosystem/products:latest'
   port:
     http: 3003
     grpc: 5001

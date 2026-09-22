@@ -1,4 +1,4 @@
-import { LoggerModule } from '@jobber/nestjs';
+import { LoggerModule } from '@ecosystem/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';

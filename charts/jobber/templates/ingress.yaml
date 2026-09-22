@@ -15,7 +15,7 @@ spec:
   ingressClassName: alb
   {{- end }}
   rules:
-    - host: {{ if .Values.ingress.alb }} jobber-backend.com {{ else }} jobber.local {{ end }}
+    - host: {{ if .Values.ingress.alb }} ecosystem-backend.com {{ else }} ecosystem.local {{ end }}
       http:
         paths:
           - path: /jobs

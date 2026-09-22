@@ -15,11 +15,11 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@jobber/graphql": ["libs/graphql/src/index.ts"],
-      "@jobber/grpc": ["libs/grpc/src/index.ts"],
-      "@jobber/nestjs": ["libs/nestjs/src/index.ts"],
-      "@jobber/prisma": ["libs/prisma/src/index.ts"],
-      "@jobber/pulsar": ["libs/pulsar/src/index.ts"]
+      "@ecosystem/graphql": ["libs/graphql/src/index.ts"],
+      "@ecosystem/grpc": ["libs/grpc/src/index.ts"],
+      "@ecosystem/nestjs": ["libs/nestjs/src/index.ts"],
+      "@ecosystem/prisma": ["libs/prisma/src/index.ts"],
+      "@ecosystem/pulsar": ["libs/pulsar/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

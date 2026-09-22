@@ -3,7 +3,7 @@ import {
   GrpcLoggingInterceptor,
   ProductsServiceController,
   ProductsServiceControllerMethods,
-} from '@jobber/grpc';
+} from '@ecosystem/grpc';
 import { Controller, UseInterceptors } from '@nestjs/common';
 import { ProductsService } from './products.service';
 

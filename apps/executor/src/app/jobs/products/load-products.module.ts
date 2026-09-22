@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { LoadProductsConsumer } from './load-products.consumer';
-import { PulsarModule } from '@jobber/pulsar';
+import { PulsarModule } from '@ecosystem/pulsar';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { Packages } from '@jobber/grpc';
+import { Packages } from '@ecosystem/grpc';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { JobClientsModule } from '../job-clients.module';

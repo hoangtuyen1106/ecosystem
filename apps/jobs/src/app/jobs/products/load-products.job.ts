@@ -1,7 +1,7 @@
-import { Jobs } from '@jobber/nestjs';
+import { Jobs } from '@ecosystem/nestjs';
 import { Job } from '../../decorators/job.decorator';
 import { AbstractJob } from '../abstract.job';
-import { LoadProductsMessage, PulsarClient } from '@jobber/pulsar';
+import { LoadProductsMessage, PulsarClient } from '@ecosystem/pulsar';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Job({

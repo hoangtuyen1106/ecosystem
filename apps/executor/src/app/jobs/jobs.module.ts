@@ -1,4 +1,4 @@
-import { PulsarModule } from '@jobber/pulsar';
+import { PulsarModule } from '@ecosystem/pulsar';
 import { Module } from '@nestjs/common';
 import { FibonacciConsumer } from './fibonacci/fibonacci.consumer';
 import { LoadProductsModule } from './products/load-products.module';

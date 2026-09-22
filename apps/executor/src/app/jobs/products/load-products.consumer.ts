@@ -2,13 +2,13 @@ import {
   Packages,
   PRODUCTS_SERVICE_NAME,
   ProductsServiceClient,
-} from '@jobber/grpc';
-import { Jobs } from '@jobber/nestjs';
+} from '@ecosystem/grpc';
+import { Jobs } from '@ecosystem/nestjs';
 import {
   LoadProductsMessage,
   PulsarClient,
   PulsarConsumer,
-} from '@jobber/pulsar';
+} from '@ecosystem/pulsar';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';

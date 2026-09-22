@@ -58,9 +58,9 @@ jobs:
 
       #       {
       #         docker build \
-      #           --tag 639852019248.dkr.ecr.us-east-2.amazonaws.com/jobber/$NAME:latest \
+      #           --tag 639852019248.dkr.ecr.us-east-2.amazonaws.com/ecosystem/$NAME:latest \
       #           -f $DOCKERFILE \
-      #           . && docker push 639852019248.dkr.ecr.us-east-2.amazonaws.com/jobber/$NAME:latest
+      #           . && docker push 639852019248.dkr.ecr.us-east-2.amazonaws.com/ecosystem/$NAME:latest
       #       } &
       #     done
 

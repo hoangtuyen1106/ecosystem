@@ -1,6 +1,6 @@
 import { Producer } from 'pulsar-client';
 import { plainToInstance } from 'class-transformer';
-import { PulsarClient, serialize } from '@jobber/pulsar';
+import { PulsarClient, serialize } from '@ecosystem/pulsar';
 import { validate } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';

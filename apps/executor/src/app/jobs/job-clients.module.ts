@@ -1,4 +1,4 @@
-import { Packages } from '@jobber/grpc';
+import { Packages } from '@ecosystem/grpc';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';

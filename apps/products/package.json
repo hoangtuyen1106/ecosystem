@@ -1,5 +1,5 @@
 {
-    "name": "@jobber/products",
+    "name": "@ecosystem/products",
     "version": "0.0.0",
     "dependencies": {
         "drizzle-orm": "^0.45.2",

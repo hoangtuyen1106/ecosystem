@@ -1,6 +1,6 @@
-import { Packages } from '@jobber/grpc';
-import { Jobs } from '@jobber/nestjs';
-import { FibonacciMessage, PulsarClient } from '@jobber/pulsar';
+import { Packages } from '@ecosystem/grpc';
+import { Jobs } from '@ecosystem/nestjs';
+import { FibonacciMessage, PulsarClient } from '@ecosystem/pulsar';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { iterate } from 'fibonacci';

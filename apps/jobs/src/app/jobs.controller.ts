@@ -2,7 +2,7 @@ import {
   AcknowledgeRequest,
   JobsServiceController,
   JobsServiceControllerMethods,
-} from '@jobber/grpc';
+} from '@ecosystem/grpc';
 import { Controller } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 

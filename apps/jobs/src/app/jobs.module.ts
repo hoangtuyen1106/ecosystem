@@ -1,11 +1,11 @@
 import { DiscoveryModule } from '@golevelup/nestjs-discovery';
-import { Packages } from '@jobber/grpc';
+import { Packages } from '@ecosystem/grpc';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { JobsResolver } from './jobs.resolver';
-import { PulsarModule } from '@jobber/pulsar';
+import { PulsarModule } from '@ecosystem/pulsar';
 import { JobsService } from './jobs.service';
 import { FibonacciJob } from './jobs/fibonacci/fibonacci.job';
 import { LoadProductsJob } from './jobs/products/load-products.job';

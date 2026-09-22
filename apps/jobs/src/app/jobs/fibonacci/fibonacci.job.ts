@@ -1,7 +1,7 @@
-import { FibonacciMessage, PulsarClient } from '@jobber/pulsar';
+import { FibonacciMessage, PulsarClient } from '@ecosystem/pulsar';
 import { Job } from '../../decorators/job.decorator';
 import { AbstractJob } from '../abstract.job';
-import { Jobs } from '@jobber/nestjs';
+import { Jobs } from '@ecosystem/nestjs';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Job({

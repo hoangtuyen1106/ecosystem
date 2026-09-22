@@ -2,8 +2,8 @@ import {
   AcknowledgeRequest,
   JOBS_SERVICE_NAME,
   JobsServiceClient,
-} from '@jobber/grpc';
-import { PulsarClient, PulsarConsumer } from '@jobber/pulsar';
+} from '@ecosystem/grpc';
+import { PulsarClient, PulsarConsumer } from '@ecosystem/pulsar';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
