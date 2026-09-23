@@ -14,6 +14,7 @@ COPY webpack.*.config.js ./
 COPY apps/bff ./apps/bff
 # COPY libs/grpc ./libs/grpc
 COPY libs/nestjs ./libs/nestjs
+COPY libs/configuration ./libs/configuration
 
 # Install dependencies
 RUN npm install
