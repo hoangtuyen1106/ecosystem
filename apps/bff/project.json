@@ -11,6 +11,7 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
+        "port": 9233,
         "buildTarget": "bff:build",
         "runBuildTargetDependencies": false
       },
