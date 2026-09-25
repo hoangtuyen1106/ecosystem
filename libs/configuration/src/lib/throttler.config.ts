@@ -9,8 +9,8 @@ export const ThrottlerProvider = ThrottlerModule.forRootAsync({
     throttlers: [{ ttl: 60000, limit: 1000 }],
     errorMessage: 'Too many requests, please try again later.',
     storage: new ThrottlerStorageRedisService({
-      host: configService.getOrThrow('REDIS_CONFIG_HOST'),
-      port: configService.getOrThrow('REDIS_CONFIG_PORT'),
+      host: configService.getOrThrow('REDIS_HOST'),
+      port: configService.getOrThrow('REDIS_PORT'),
     }),
   }),
 });
