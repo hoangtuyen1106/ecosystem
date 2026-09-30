@@ -1,11 +1,7 @@
 require('module-alias/register');
-import { Packages } from '@ecosystem/grpc';
 import { init } from '@ecosystem/nestjs';
-import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { GrpcOptions, Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { join } from 'path';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {

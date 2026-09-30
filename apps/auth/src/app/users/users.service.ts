@@ -1,27 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/browser';
 import { PrismaService } from '../prisma/prisma.service';
 import { hash } from 'bcryptjs';
+import { v7 as uuidv7 } from 'uuid';
+import { UserRepository } from './repositories/user.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prismaService: PrismaService) {}
-  async createUser(data: Prisma.UserCreateInput) {
-    return this.prismaService.user.create({
-      data: {
-        ...data,
-        password: await hash(data.password, 10),
-      },
-    });
+  private readonly saltRounds = 9;
+
+  constructor(
+    private readonly userRepository: UserRepository
+  ) {}
+
+  async create(data: Prisma.UserCreateInput) {
+    const isExists = await this.userRepository.checkEmailExists(data.email);
+    if (isExists) {
+      throw new BadRequestException('user already exists');
+    }
+    return this.userRepository.create(data);
   }
 
-  async getUsers() {
-    return this.prismaService.user.findMany();
-  }
-
-  async getUser(args: Prisma.UserWhereUniqueInput) {
-    return this.prismaService.user.findUniqueOrThrow({
-      where: args,
-    });
+  getUsers() {
+    return this.userRepository.getUsers();
   }
 }

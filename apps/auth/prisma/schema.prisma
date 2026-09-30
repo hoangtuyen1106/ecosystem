@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -8,8 +8,37 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserGender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  PENDING
+}
+
 model User {
-    id Int @default(autoincrement()) @id
-    email String @unique
-    password String
+  id       String  @id @db.Uuid
+  username String? @unique
+  email    String  @unique
+  password String
+
+  firstName String?     @db.VarChar(50)
+  lastName  String?     @db.VarChar(50)
+  avatar    String?     @db.VarChar(100)
+  phone     String?     @db.VarChar(20)
+  gender    UserGender?
+  status    UserStatus  @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([lastName, firstName])
+  @@map("users")
 }
