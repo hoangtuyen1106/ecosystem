@@ -310,7 +310,7 @@ export type UserScalarWhereWithAggregatesInput = {
 }
 
 export type UserCreateInput = {
-  id?: string
+  id: string
   username?: string | null
   email: string
   password: string
@@ -325,7 +325,7 @@ export type UserCreateInput = {
 }
 
 export type UserUncheckedCreateInput = {
-  id?: string
+  id: string
   username?: string | null
   email: string
   password: string
@@ -370,7 +370,7 @@ export type UserUncheckedUpdateInput = {
 }
 
 export type UserCreateManyInput = {
-  id?: string
+  id: string
   username?: string | null
   email: string
   password: string

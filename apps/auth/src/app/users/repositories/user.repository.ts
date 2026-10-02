@@ -12,8 +12,8 @@ export class UserRepository {
   async create(data: Prisma.UserCreateInput) {
     return this.prismaService.user.create({
       data: {
-        id: uuidv7(),
         ...data,
+        id: uuidv7(),
         password: await hash(data.password, this.saltRounds),
       },
     });
@@ -34,5 +34,11 @@ export class UserRepository {
 
   async getUsers() {
     return await this.prismaService.user.findMany();
+  }
+
+  async getUser(args: Prisma.UserWhereUniqueInput) {
+    return await this.prismaService.user.findUniqueOrThrow({
+      where: args,
+    });
   }
 }
