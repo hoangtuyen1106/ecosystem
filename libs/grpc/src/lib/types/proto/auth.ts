@@ -12,6 +12,11 @@ export interface AuthenticateRequest {
   token: string;
 }
 
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -19,15 +24,19 @@ export interface User {
 
 export interface AuthServiceClient {
   authenticate(request: AuthenticateRequest): Observable<User>;
+
+  createUser(request: CreateUserRequest): Observable<User>;
 }
 
 export interface AuthServiceController {
   authenticate(request: AuthenticateRequest): Promise<User> | Observable<User> | User;
+
+  createUser(request: CreateUserRequest): Promise<User> | Observable<User> | User;
 }
 
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["authenticate"];
+    const grpcMethods: string[] = ["authenticate", "createUser"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);

@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { GrpcClientsModule } from '../grpc-clients.module';
 import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
+  imports: [GrpcClientsModule],
   controllers: [UsersController],
   providers: [UsersService],
 })

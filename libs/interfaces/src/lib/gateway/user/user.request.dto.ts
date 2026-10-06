@@ -27,7 +27,8 @@ export class CreateUserInput {
     description: 'Giới tính'
   })
   @IsEnum(USER_GENDER)
-  gender?: string;
+  @IsOptional()
+  gender?: USER_GENDER;
 
   @IsString()
   @IsOptional()
@@ -51,7 +52,7 @@ export class CreateUserInput {
     description: 'Trạng thái User'
   })
   @IsEnum(USER_STATUS)
-  status: string;
+  status: USER_STATUS;
 }
 
 export class UpdateUserInput {
