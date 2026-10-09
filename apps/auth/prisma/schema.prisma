@@ -32,6 +32,7 @@ model User {
   lastName  String?     @db.VarChar(50)
   avatar    String?     @db.VarChar(100)
   phone     String?     @db.VarChar(20)
+  birthday  String?     @db.VarChar(50)
   gender    UserGender?
   status    UserStatus  @default(ACTIVE)
 

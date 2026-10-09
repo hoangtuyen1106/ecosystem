@@ -10,11 +10,11 @@ export class UsersService {
   ) {}
 
 
-  async createUser(data: CreateUserRequestDto) {
+  async create(data: CreateUserRequestDto) {
     const isExists = await this.userRepository.checkEmailExists(data.email);
-    if (isExists) {
-      throw new BadRequestException('user already exists');
-    }
+    // if (isExists) {
+    //   throw new BadRequestException('user already exists');
+    // }
     return this.userRepository.create(data);
   }
 
