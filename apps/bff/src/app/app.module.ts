@@ -1,4 +1,4 @@
-import { ThrottlerProvider } from '@ecosystem/configuration';
+import { TCP_PORT, TCP_SERVICES, ThrottlerProvider } from '@ecosystem/configuration';
 import { LoggerModule } from '@ecosystem/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -7,6 +7,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { HealthController } from './health/health.controller';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { UsersModule } from './users/users.module';
     }),
     ThrottlerProvider,
     HealthModule,
-    UsersModule,
+    UsersModule
   ],
   controllers: [HealthController],
   providers: [

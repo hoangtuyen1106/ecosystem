@@ -1,30 +1,20 @@
+import { TCP_SERVICES } from '@ecosystem/configuration';
+import { TCP_REQUEST_MESSAGE } from '@ecosystem/constants';
+import { CreateUserRequestDto, CreateUserTcpRequest, ResponseDto, TcpClient } from '@ecosystem/interfaces';
 import { Inject, Injectable } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
-import {
-  AuthServiceClient,
-  CreateUserRequest,
-  Packages,
-  User,
-} from '@ecosystem/grpc';
-import { firstValueFrom } from 'rxjs';
-import { CreateUserDto } from '../dto/create-user.dto';
+import { ClientProxy } from '@nestjs/microservices';
+import { map } from 'rxjs';
 
 @Injectable()
 export class UsersService {
-  private authService: AuthServiceClient;
+  constructor(
+    @Inject(TCP_SERVICES.TCP_USER_SERVICE) private readonly userClient: TcpClient,
+  ) {}
 
-  constructor(@Inject(Packages.AUTH) private authClient: ClientGrpc) {
-    this.authService = this.authClient.getService<AuthServiceClient>(
-      'auth.AuthService'
-    );
-  }
-
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const request: CreateUserRequest = {
-      email: createUserDto.email,
-      password: createUserDto.password,
-    };
-
-    return firstValueFrom(this.authService.createUser(request));
+  async create(body: CreateUserRequestDto) {
+    return this.userClient
+      .send<string, CreateUserTcpRequest>(TCP_REQUEST_MESSAGE.USER.CREATE, body)
+      .pipe(map((data) => new ResponseDto(data)));
   }
 }
+

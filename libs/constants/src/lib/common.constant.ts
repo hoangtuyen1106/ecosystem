@@ -2,7 +2,6 @@ export enum USER_GENDER {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
   OTHER = 'OTHER',
-  UNKNOWN = 'UNKNOWN',
 }
 
 export enum USER_STATUS {

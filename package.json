@@ -33,6 +33,12 @@
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/throttler": "^6.7.0",
     "@prisma/adapter-pg": "^7.8.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.67.3",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.208.0",
+    "@opentelemetry/resources": "^2.2.0",
+    "@opentelemetry/sdk-node": "^0.208.0",
+    "@opentelemetry/semantic-conventions": "^1.38.0",
     "axios": "^1.6.0",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
@@ -62,7 +68,9 @@
     "@ecosystem/prisma": "dist/libs/prisma/main",
     "@ecosystem/configuration": "dist/libs/configuration/main",
     "@ecosystem/redis": "dist/libs/redis/main",
-    "@ecosystem/interfaces": "dist/libs/interfaces/main"
+    "@ecosystem/interfaces": "dist/libs/interfaces/main",
+    "@ecosystem/observability": "dist/libs/observability/main",
+    "@ecosystem/decorators": "dist/libs/decorators/main"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

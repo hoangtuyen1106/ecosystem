@@ -94,12 +94,12 @@ export class RedisService {
         return await this.redis.zadd(key, ...args);
     }
 
-    async zrange(key: string, start: number, stop: number, withScores = false): Promise<string[]> {
-        if (withScores) {
-            return await this.redis.zrange(key, start, stop, 'WITHSCORES');
-        }
-        return await this.redis.zrange(key, start, stop);
-    }
+    // async zrange(key: string, start: number, stop: number, withScores = false): Promise<string[]> {
+    //     if (withScores) {
+    //         return await this.redis.zrange(key, start, stop, 'WITHSCORES');
+    //     }
+    //     return await this.redis.zrange(key, start, stop);
+    // }
 
     async zrem(key: string, ...members: string[]): Promise<number> {
         return await this.redis.zrem(key, ...members);

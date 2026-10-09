@@ -1,0 +1,53 @@
+{
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/notify-sound.sh success",
+            "statusMessage": "Phát âm thanh thông báo hoàn thành...",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/notify-sound.sh success",
+            "statusMessage": "Phát âm thanh thông báo agent hoàn thành...",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolBatch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/notify-sound.sh info",
+            "statusMessage": "Phát âm thanh thông báo...",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(bash .claude/scripts/notify-sound.sh *)"
+    ]
+  },
+  "documentation": {
+    "hooksSetup": ".claude/hooks-setup.md",
+    "notifyScript": ".claude/scripts/notify-sound.sh",
+    "soundDirectory": ".claude/sounds"
+  }
+}

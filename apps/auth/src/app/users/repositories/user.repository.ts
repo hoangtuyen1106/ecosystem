@@ -3,14 +3,14 @@ import { Prisma } from '../../../generated/prisma/browser';
 import { PrismaService } from '../../prisma/prisma.service';
 import { v7 as uuidv7 } from 'uuid';
 import { hash } from 'bcryptjs';
-import { CreateUserInput } from '@ecosystem/interfaces';
+import { CreateUserRequestDto } from '@ecosystem/interfaces';
 
 @Injectable()
 export class UserRepository {
   private readonly saltRounds = 9;
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(data: CreateUserInput) {
+  async create(data: CreateUserRequestDto) {
     return this.prismaService.user.create({
       data: {
         ...data,

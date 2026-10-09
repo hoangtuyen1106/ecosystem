@@ -24,7 +24,9 @@
       "@ecosystem/redis": ["libs/redis/src/index.ts"],
       "@ecosystem/interfaces": ["libs/interfaces/src/index.ts"],
       "@ecosystem/constants": ["libs/constants/src/index.ts"],
-      "@ecosystem/interceptors": ["./libs/interceptors/src/index.ts"]
+      "@ecosystem/interceptors": ["./libs/interceptors/src/index.ts"],
+      "@ecosystem/observability": ["./libs/observability/src/index.ts"],
+      "@ecosystem/decorators": ["./libs/decorators/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

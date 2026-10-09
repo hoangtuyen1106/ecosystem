@@ -4,16 +4,10 @@ package auth;
 
 service AuthService {
     rpc Authenticate(AuthenticateRequest) returns (User);
-    rpc CreateUser(CreateUserRequest) returns (User);
 }
 
 message AuthenticateRequest {
     string token = 1;
-}
-
-message CreateUserRequest {
-    string email = 1;
-    string password = 2;
 }
 
 message User {
