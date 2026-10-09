@@ -12,9 +12,11 @@ export class UsersService {
 
   async create(data: CreateUserRequestDto) {
     const isExists = await this.userRepository.checkEmailExists(data.email);
-    // if (isExists) {
-    //   throw new BadRequestException('user already exists');
-    // }
+    if (isExists) {
+      throw new BadRequestException(
+        'This email is already registered. Please use another email or login.'
+      );
+    }
     return this.userRepository.create(data);
   }
 
