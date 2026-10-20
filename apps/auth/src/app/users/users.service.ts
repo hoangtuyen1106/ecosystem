@@ -24,7 +24,11 @@ export class UsersService {
     return this.userRepository.getUsers();
   }
 
-  async getUser(args: Prisma.UserWhereUniqueInput) {
-    return this.userRepository.getUser(args);
+  // async getUser(data: Prisma.UserWhereUniqueInput): Promise<> {
+  //   return this.userRepository.getUser(args);
+  // }
+
+  async getUserByUserId(userId: string) {
+
   }
 }

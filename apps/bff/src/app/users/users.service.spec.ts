@@ -1,9 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { throwError } from 'rxjs';
-import { TCP_SERVICES } from '@ecosystem/configuration';
 import { CreateUserRequestDto, ResponseDto, TcpClient } from '@ecosystem/interfaces';
-import { USER_STATUS } from '@ecosystem/constants';
+import { TCP_SERVICES, USER_STATUS } from '@ecosystem/constants';
 import { UsersService } from './users.service';
 
 describe('UsersService - BFF', () => {
@@ -19,8 +18,8 @@ describe('UsersService - BFF', () => {
       providers: [
         UsersService,
         {
-          provide: TCP_SERVICES.TCP_USER_SERVICE,
-          useValue: userClient,
+          provide: TCP_SERVICES.AUTH_SERVICE,
+          useValue: authClient,
         },
       ],
     }).compile();

@@ -25,16 +25,6 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
   });
-
-  // app.connectMicroservice<GrpcOptions>({
-  //   transport: Transport.GRPC,
-  //   options: {
-  //     url: app.get(ConfigService).getOrThrow('BFF_GRPC_SERVICE_URL'),
-  //     package: Packages.BFF,
-  //     protoPath: join(__dirname, '../../libs/grpc/proto/bff.proto'),
-  //   },
-  // });
-
  
   await app.startAllMicroservices();
 }

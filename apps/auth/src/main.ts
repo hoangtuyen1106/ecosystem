@@ -6,6 +6,7 @@ import { AppModule } from './app/app.module';
 import { Packages } from '@ecosystem/grpc';
 import { init } from '@ecosystem/nestjs';
 import { ConfigService } from '@nestjs/config';
+import { TCP_PORT } from '@ecosystem/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -14,7 +15,7 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: 'localhost',
-      port: app.get(ConfigService).getOrThrow('TCP_USER_PORT'),
+      port: TCP_PORT.TCP_AUTH_PORT,
     },
   });
 

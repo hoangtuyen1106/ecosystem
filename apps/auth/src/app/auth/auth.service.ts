@@ -6,36 +6,42 @@ import { compare } from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { TokenPayload } from './token-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { LoginTcpRequest } from '@ecosystem/interfaces';
+import { PrismaService } from '../prisma/prisma.service';
+import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UsersService,
-    private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
+    private readonly keycloakHttpService: KeycloakHttpService,
+    private readonly prismaService: PrismaService,
   ) {}
-  async login({ email, password }: LoginInput, response: Response) {
-    const user = await this.verifyUser(email, password);
-    const expires = new Date();
-    expires.setMilliseconds(
-      expires.getMilliseconds() +
-        parseInt(this.configService.getOrThrow('JWT_EXPIRATION_MS')),
-    );
-    const tokenPayload: TokenPayload = {
-      userId: user.id,
+  async login(params: LoginTcpRequest) {
+    const { username, password } = params;
+    const { access_token: accessToken, refresh_token: refreshToken } =
+      await this.keycloakHttpService.exchangeUserToken({
+        username,
+        password,
+      });
+
+    return {
+      accessToken,
+      refreshToken,
     };
-    const accessToken = this.jwtService.sign(tokenPayload);
-    response.cookie('Authentication', accessToken, {
-      httpOnly: true,
-      secure: !!this.configService.get('SECURE_COOKIE'),
-      expires,
-    });
-    return user;
   }
 
-  private async verifyUser(email: string, password: string) {
+  private async verifyUser(identifier: string, password: string) {
     try {
-      const user = await this.userService.getUser({ email });
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          OR: [{ username: identifier }, { email: identifier }],
+        },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
       const authenticated = await compare(password, user.password);
       if (!authenticated) {
         throw new UnauthorizedException();

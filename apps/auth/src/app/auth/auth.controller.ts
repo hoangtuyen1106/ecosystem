@@ -1,26 +1,18 @@
-import { Controller, UseGuards, UseInterceptors } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import {
-  AuthenticateRequest,
-  AuthServiceController,
-  AuthServiceControllerMethods,
-  GrpcLoggingInterceptor,
-  User,
-} from '@ecosystem/grpc';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { UsersService } from '../users/users.service';
-import { TokenPayload } from './token-payload.interface';
+import { TCP_REQUEST_MESSAGE } from '@ecosystem/constants';
+import { RequestParams } from '@ecosystem/decorators';
+import { LoginTcpRequest, LoginTcpResponse, Response } from '@ecosystem/interfaces';
+import { Controller } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
+import { AuthService } from './auth.service';
 
 @Controller()
-@AuthServiceControllerMethods()
-@UseInterceptors(GrpcLoggingInterceptor)
-export class AuthController implements AuthServiceController {
-  constructor(private readonly usersService: UsersService) {}
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(JwtAuthGuard)
-  authenticate(
-    request: AuthenticateRequest & { user: TokenPayload },
-  ): Promise<User> | Observable<User> | User {
-    return this.usersService.getUser({ id: request.user.userId });
+  @MessagePattern(TCP_REQUEST_MESSAGE.AUTHORIZER.LOGIN)
+  async login(@RequestParams() params: LoginTcpRequest ) {
+    const result = await this.authService.login(params)
+    return Response.success<LoginTcpResponse>(result);
   }
+
 }

@@ -8,7 +8,7 @@ import { HealthController } from './health/health.controller';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { ExceptionInterceptor } from '@ecosystem/interceptors';
-import { AuthController } from './auth/auth.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -19,8 +19,9 @@ import { AuthController } from './auth/auth.controller';
     ThrottlerProvider,
     HealthModule,
     UsersModule,
+    AuthModule,
   ],
-  controllers: [HealthController, AuthController],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_INTERCEPTOR,

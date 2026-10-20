@@ -42,4 +42,12 @@ export class UserRepository {
       where: args,
     });
   }
+
+  getByUserId(user_id: string) {
+    return this.prismaService.user.findFirst({
+      where: {
+        id: user_id,
+      }
+    })
+  }
 }
