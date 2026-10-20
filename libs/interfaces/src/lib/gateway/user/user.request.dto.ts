@@ -13,8 +13,8 @@ import {
 export class CreateUserRequestDto {
   @ApiProperty({ example: 'tuyennh' })
   @IsString()
-  @IsOptional()
-  username?: string;
+  @IsNotEmpty({ message: 'Username không được để trống' })
+  username: string;
 
   @ApiProperty({ example: 'tuyennh@gmail.com' })
   @IsEmail()
@@ -72,7 +72,7 @@ export class CreateUserRequestDto {
   })
   @IsEnum(USER_STATUS)
   @IsOptional()
-  status: USER_STATUS;
+  status?: USER_STATUS;
 }
 
 export class UpdateUserInput {

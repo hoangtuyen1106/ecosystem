@@ -13,7 +13,6 @@ import { KeycloakModule } from './keycloak/keycloak.module';
     PrismaModule,
     UsersModule,
     AuthModule,
-    KeycloakModule,
   ],
   providers: [],
 })

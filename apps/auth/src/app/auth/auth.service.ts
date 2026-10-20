@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { LoginInput } from './dto/login.input';
 import { Response } from 'express';
 import { UsersService } from '../users/users.service';
@@ -12,11 +12,14 @@ import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly keycloakHttpService: KeycloakHttpService,
     private readonly prismaService: PrismaService,
   ) {}
   async login(params: LoginTcpRequest) {
+    // this.logger.debug(params);
     const { username, password } = params;
     const { access_token: accessToken, refresh_token: refreshToken } =
       await this.keycloakHttpService.exchangeUserToken({

@@ -15,13 +15,13 @@ export class KeycloakHttpService {
 
   constructor(private readonly configService: ConfigService) {
     this.axiosInstance = axios.create({
-      baseURL: this.configService.getOrThrow('KEYCLOAK_CONFIG.HOST'),
+      baseURL: this.configService.getOrThrow('KEYCLOAK_HOST'),
     });
 
-    this.realm = this.configService.getOrThrow('KEYCLOAK_CONFIG.REALM');
-    this.clientId = this.configService.getOrThrow('KEYCLOAK_CONFIG.CLIENT_ID');
+    this.realm = this.configService.getOrThrow('KEYCLOAK_REALM');
+    this.clientId = this.configService.getOrThrow('KEYCLOAK_CLIENT_ID');
     this.clientSecret = this.configService.getOrThrow(
-      'KEYCLOAK_CONFIG.CLIENT_SECRET',
+      'KEYCLOAK_CLIENT_SECRET',
     );
   }
 

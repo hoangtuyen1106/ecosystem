@@ -28,7 +28,7 @@ export class UsersService {
   //   return this.userRepository.getUser(args);
   // }
 
-  async getUserByUserId(userId: string) {
-
+  getUserByUserId(userId: string) {
+    return this.userRepository.getByUserId(userId)
   }
 }
