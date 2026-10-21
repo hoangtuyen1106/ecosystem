@@ -4,8 +4,9 @@ export const RequestParams = createParamDecorator((param: string, ctx: Execution
   const request = ctx.switchToRpc().getData();
 
   if (!param) {
-    return request.data;
+    // Handle both { data: {...} } and direct object formats
+    return request.data || request;
   }
 
-  return request.data[param];
+  return request.data?.[param] || request[param];
 });
