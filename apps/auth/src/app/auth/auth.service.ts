@@ -9,14 +9,19 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginTcpRequest } from '@ecosystem/interfaces';
 import { PrismaService } from '../prisma/prisma.service';
 import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
+import { AuthorizeResponse, JWTPayload } from '@ecosystem/grpc';
+import jwksRsa, { JwksClient } from 'jwks-rsa';
+
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private jwksClient: JwksClient;
 
   constructor(
     private readonly keycloakHttpService: KeycloakHttpService,
     private readonly prismaService: PrismaService,
+    private readonly jwtService: JwtService,
   ) {}
   async login(params: LoginTcpRequest) {
     // this.logger.debug(params);
@@ -52,6 +57,47 @@ export class AuthService {
       return user;
     } catch {
       throw new UnauthorizedException('Credentials are not valid');
+    }
+  }
+
+  async verifyUserToken(token: string): Promise<AuthorizeResponse> {
+    const decoded = this.jwtService.decode(token, {
+      complete: true,
+    });
+
+    if (!decoded || !decoded.header?.kid) {
+      throw new UnauthorizedException('Invalid token structure');
+    }
+
+    try {
+      const key = await this.jwksClient.getSigningKey(decoded.header.kid);
+      const publicKey = key.getPublicKey();
+
+      const payload = await this.jwtService.verifyAsync<JWTPayload>(
+        token,
+        {
+          publicKey,
+          algorithms: ['RS256'],
+        },
+      );
+
+      this.logger.debug({ userId: payload.sub });
+
+      const user = await this.userValidation(payload.sub);
+
+      return {
+        valid: true,
+        metadata: {
+          jwt: payload,
+          permissions: (user.roles as unknown as Role[])
+            .flatMap((role) => role.permissions),
+          user,
+          userId: user.id,
+        },
+      };
+    } catch (error) {
+      this.logger.error(error);
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }

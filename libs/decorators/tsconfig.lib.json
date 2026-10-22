@@ -13,7 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../apps/auth/src/app/common/decorators/authorizer.decotator.ts"],
   "exclude": [
     "jest.config.ts",
     "jest.config.cts",

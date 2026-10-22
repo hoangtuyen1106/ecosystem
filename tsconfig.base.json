@@ -27,7 +27,8 @@
       "@ecosystem/interceptors": ["libs/interceptors/src/index.ts"],
       "@ecosystem/observability": ["libs/observability/src/index.ts"],
       "@ecosystem/decorators": ["libs/decorators/src/index.ts"],
-      "@ecosystem/guards": ["libs/guards/src/index.ts"]
+      "@ecosystem/guards": ["libs/guards/src/index.ts"],
+      "@ecosystem/utils": ["libs/utils/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

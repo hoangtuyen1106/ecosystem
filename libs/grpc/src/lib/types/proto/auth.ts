@@ -8,36 +8,78 @@
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 
-export interface AuthenticateRequest {
+export interface VerifyUserTokenRequest {
   token: string;
 }
 
+export interface VerifyUserTokenResponse {
+  code: string;
+  data: AuthorizeResponse | undefined;
+  error: string;
+}
+
+export interface AuthorizeResponse {
+  valid: boolean;
+  metadata?: AuthorizedMetadata | undefined;
+}
+
+export interface JWTPayload {
+  iss: string;
+  aud: string;
+  iat: number;
+  exp: number;
+  sub: string;
+  atHash: string;
+  sid: string;
+  nonce: string;
+  isExpired: boolean;
+}
+
+export interface AuthorizedMetadata {
+  userId?: string | undefined;
+  user?: User | undefined;
+  permissions: string[];
+  jwt?: JWTPayload | undefined;
+}
+
+export interface Role {
+  name: string;
+  description: string;
+  permissions: string[];
+}
+
 export interface User {
+  Id: string;
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  roles: Role[];
 }
 
-export interface AuthServiceClient {
-  authenticate(request: AuthenticateRequest): Observable<User>;
+export interface AuthorizerServiceClient {
+  verifyUserToken(request: VerifyUserTokenRequest): Observable<VerifyUserTokenResponse>;
 }
 
-export interface AuthServiceController {
-  authenticate(request: AuthenticateRequest): Promise<User> | Observable<User> | User;
+export interface AuthorizerServiceController {
+  verifyUserToken(
+    request: VerifyUserTokenRequest,
+  ): Promise<VerifyUserTokenResponse> | Observable<VerifyUserTokenResponse> | VerifyUserTokenResponse;
 }
 
-export function AuthServiceControllerMethods() {
+export function AuthorizerServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["authenticate"];
+    const grpcMethods: string[] = ["verifyUserToken"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);
+      GrpcMethod("AuthorizerService", method)(constructor.prototype[method], method, descriptor);
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("AuthService", method)(constructor.prototype[method], method, descriptor);
+      GrpcStreamMethod("AuthorizerService", method)(constructor.prototype[method], method, descriptor);
     }
   };
 }
 
-export const AUTH_SERVICE_NAME = "AuthService";
+export const AUTHORIZER_SERVICE_NAME = "AuthorizerService";
