@@ -28,7 +28,11 @@ export class UsersService {
   //   return this.userRepository.getUser(args);
   // }
 
-  getUserByUserId(userId: string) {
-    return this.userRepository.getByUserId(userId)
+  getUserByUserId(id: string) {
+    return this.userRepository.getByUserId(id)
+  }
+
+  getUserByKeycloakId(keycloak_id: string) {
+    return this.userRepository.getUserByKeycloakId(keycloak_id)
   }
 }

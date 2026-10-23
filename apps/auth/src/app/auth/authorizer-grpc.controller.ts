@@ -22,6 +22,6 @@ export class AuthorizerGrpcController implements AuthorizerServiceController {
     | Promise<VerifyUserTokenResponse>
     | Observable<VerifyUserTokenResponse>
     | VerifyUserTokenResponse {
-    const result = await this.authService.verifyUserToken
+    return await this.authService.verifyUserToken(request.token);
   }
 }

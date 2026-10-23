@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
 import { AuthorizeResponse, JWTPayload } from '@ecosystem/grpc';
 import jwksRsa, { JwksClient } from 'jwks-rsa';
+import { firstValueFrom } from 'rxjs';
 
 
 @Injectable()
@@ -22,6 +23,7 @@ export class AuthService {
     private readonly keycloakHttpService: KeycloakHttpService,
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly userService: UsersService,
   ) {}
   async login(params: LoginTcpRequest) {
     // this.logger.debug(params);
@@ -89,8 +91,8 @@ export class AuthService {
         valid: true,
         metadata: {
           jwt: payload,
-          permissions: (user.roles as unknown as Role[])
-            .flatMap((role) => role.permissions),
+          // permissions: (user.roles as unknown as Role[])
+          //   .flatMap((role) => role.permissions),
           user,
           userId: user.id,
         },
@@ -99,5 +101,13 @@ export class AuthService {
       this.logger.error(error);
       throw new UnauthorizedException('Invalid token');
     }
+  }
+
+  private async userValidation(keycloak_id: string) {
+    const user = await this.userService.getUserByKeycloakId(keycloak_id);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return user;
   }
 }

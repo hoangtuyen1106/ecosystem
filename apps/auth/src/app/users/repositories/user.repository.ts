@@ -50,4 +50,12 @@ export class UserRepository {
       }
     })
   }
+
+  getUserByKeycloakId(id: string) {
+    return this.prismaService.user.findFirst({
+      where: {
+        keycloak_id: id,
+      }
+    })
+  }
 }
