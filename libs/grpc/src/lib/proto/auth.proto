@@ -12,7 +12,7 @@ message VerifyUserTokenRequest {
 
 message VerifyUserTokenResponse {
   string code = 1;
-  AuthorizeResponse data = 2;
+  optional AuthorizeResponse data = 2;
   string error = 3;
 }
 
@@ -48,6 +48,6 @@ message Role {
 message User {
   string id = 1;
   string firstName = 2;
-  string lastName = 3;
+  optional string lastName = 3;
   string email = 4;
 }

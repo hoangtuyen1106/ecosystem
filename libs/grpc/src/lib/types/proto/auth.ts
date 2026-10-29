@@ -14,7 +14,7 @@ export interface VerifyUserTokenRequest {
 
 export interface VerifyUserTokenResponse {
   code: string;
-  data: AuthorizeResponse | undefined;
+  data?: AuthorizeResponse | undefined;
   error: string;
 }
 
@@ -50,7 +50,7 @@ export interface Role {
 export interface User {
   id: string;
   firstName: string;
-  lastName: string;
+  lastName?: string | undefined;
   email: string;
 }
 

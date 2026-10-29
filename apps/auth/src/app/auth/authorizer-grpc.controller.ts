@@ -2,10 +2,12 @@ import {
   AuthorizerServiceController,
   AuthorizerServiceControllerMethods,
   GrpcLoggingInterceptor,
+  Response,
   VerifyUserTokenRequest,
   VerifyUserTokenResponse,
 } from '@ecosystem/grpc';
 import { Controller, UseInterceptors } from '@nestjs/common';
+
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -18,10 +20,8 @@ export class AuthorizerGrpcController implements AuthorizerServiceController {
 
   async verifyUserToken(
     request: VerifyUserTokenRequest,
-  ):
-    | Promise<VerifyUserTokenResponse>
-    | Observable<VerifyUserTokenResponse>
-    | VerifyUserTokenResponse {
-    return await this.authService.verifyUserToken(request.token);
+  ): Promise<VerifyUserTokenResponse> {
+    const result = await this.authService.verifyUserToken(request.token);
+    return Response.success(result);
   }
 }

@@ -24,22 +24,22 @@ enum UserStatus {
 
 model User {
   id       String  @id @db.Uuid
-  username String? @unique
-  email    String? @unique
+  username String @unique
+  email    String @unique
   password String
 
-  keycloakId String? @unique
+  keycloakId String? @unique @map("keycloak_id")
 
-  firstName String?     @db.VarChar(50)
-  lastName  String?     @db.VarChar(50)
-  avatar     String?     @db.VarChar(100)
-  phone      String?     @db.VarChar(20)
-  birthday   String?     @db.VarChar(50)
-  gender     UserGender?
-  status     UserStatus  @default(ACTIVE)
+  firstName String      @map("first_name") @db.VarChar(50)
+  lastName  String?     @map("last_name") @db.VarChar(50)
+  avatar    String?     @db.VarChar(100)
+  phone     String?     @db.VarChar(20)
+  birthday  String?     @db.VarChar(50)
+  gender    UserGender?
+  status    UserStatus  @default(ACTIVE)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([status])
   @@index([firstName, lastName])

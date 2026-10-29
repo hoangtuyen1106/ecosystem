@@ -1,13 +1,19 @@
 import {
+  CreateKeyCloakUserRequest,
   ExchangeClientTokenResponse,
   ExchangeUserTokenResponse,
 } from '@ecosystem/interfaces';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 
 @Injectable()
 export class KeycloakHttpService {
+  private readonly logger = new Logger(KeycloakHttpService.name);
   private readonly axiosInstance: AxiosInstance;
   private realm: string;
   private clientId: string;
@@ -20,9 +26,7 @@ export class KeycloakHttpService {
 
     this.realm = this.configService.getOrThrow('KEYCLOAK_REALM');
     this.clientId = this.configService.getOrThrow('KEYCLOAK_CLIENT_ID');
-    this.clientSecret = this.configService.getOrThrow(
-      'KEYCLOAK_CLIENT_SECRET',
-    );
+    this.clientSecret = this.configService.getOrThrow('KEYCLOAK_CLIENT_SECRET');
   }
 
   async exchangeClientToken(): Promise<ExchangeClientTokenResponse> {
@@ -68,5 +72,39 @@ export class KeycloakHttpService {
     );
 
     return data;
+  }
+
+  async createUser(data: CreateKeyCloakUserRequest): Promise<string> {
+    const { email, firstName, lastName, password } = data;
+
+    const { access_token: accessToken } = await this.exchangeClientToken();
+
+    const { headers } = await this.axiosInstance.post(
+      `/admin/realms/${this.realm}/users`,
+      {
+        firstName,
+        lastName,
+        email,
+        username: email,
+        enabled: true,
+        emailVerified: true,
+        credentials: [{ type: 'password', value: password, temporary: false }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const keycloakId = headers['location']?.split('/')?.pop();
+
+    if (!keycloakId) {
+      throw new InternalServerErrorException('Could not create keycloak user');
+    }
+
+    this.logger.debug('Created user with id: ' + keycloakId);
+
+    return keycloakId;
   }
 }

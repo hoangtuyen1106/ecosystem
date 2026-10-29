@@ -25,6 +25,7 @@ import { AuthorizerGrpcController } from './authorizer-grpc.controller';
     UsersModule,
     KeycloakModule,
     PrismaModule,
+    
   ],
   controllers: [AuthController, AuthorizerGrpcController],
   providers: [AuthService, JwtStrategy],

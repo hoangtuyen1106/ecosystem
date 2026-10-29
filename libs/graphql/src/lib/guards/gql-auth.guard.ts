@@ -9,16 +9,16 @@ import {
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { ClientGrpc } from '@nestjs/microservices';
 import { catchError, map, of } from 'rxjs';
-import { Packages, AUTH_SERVICE_NAME, AuthServiceClient } from '@ecosystem/grpc';
+import { Packages, AUTHORIZER_SERVICE_NAME, AuthorizerServiceClient } from '@ecosystem/grpc';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate, OnModuleInit {
   private readonly logger = new Logger(GqlAuthGuard.name);
-  private authService: AuthServiceClient;
+  private authService: AuthorizerServiceClient;
   constructor(@Inject(Packages.AUTH) private client: ClientGrpc) {}
   onModuleInit() {
     this.authService =
-      this.client.getService<AuthServiceClient>(AUTH_SERVICE_NAME);
+      this.client.getService<AuthorizerServiceClient>(AUTHORIZER_SERVICE_NAME);
   }
   canActivate(context: ExecutionContext) {
     const token = this.getRequest(context).cookies?.Authentication;
@@ -27,7 +27,7 @@ export class GqlAuthGuard implements CanActivate, OnModuleInit {
       return false;
     }
 
-    return this.authService.authenticate({ token }).pipe(
+    return this.authService.verifyUserToken({ token }).pipe(
       map((res) => {
         this.getRequest(context).user = res;
         return true;

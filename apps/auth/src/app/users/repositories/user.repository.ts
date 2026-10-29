@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/browser';
 import { PrismaService } from '../../prisma/prisma.service';
-import { v7 as uuidv7 } from 'uuid';
+
 import { hash } from 'bcryptjs';
-import { CreateUserRequestDto } from '@ecosystem/interfaces';
+import { UserCreateInput } from 'apps/auth/src/generated/prisma/models';
 
 @Injectable()
 export class UserRepository {
   private readonly saltRounds = 9;
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(data: CreateUserRequestDto) {
+  async create(data: UserCreateInput) {
     return this.prismaService.user.create({
       data: {
         ...data,
-        id: uuidv7(),
         password: await hash(data.password, this.saltRounds),
       },
     });
@@ -54,7 +53,7 @@ export class UserRepository {
   getUserByKeycloakId(id: string) {
     return this.prismaService.user.findFirst({
       where: {
-        keycloak_id: id,
+        keycloakId: id,
       }
     })
   }

@@ -1,17 +1,12 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { LoginInput } from './dto/login.input';
-import { Response } from 'express';
-import { UsersService } from '../users/users.service';
-import { compare } from 'bcryptjs';
-import { ConfigService } from '@nestjs/config';
-import { TokenPayload } from './token-payload.interface';
-import { JwtService } from '@nestjs/jwt';
-import { LoginTcpRequest } from '@ecosystem/interfaces';
-import { PrismaService } from '../prisma/prisma.service';
-import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
 import { AuthorizeResponse, JWTPayload } from '@ecosystem/grpc';
-import jwksRsa, { JwksClient } from 'jwks-rsa';
-import { firstValueFrom } from 'rxjs';
+import { LoginTcpRequest } from '@ecosystem/interfaces';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { compare } from 'bcryptjs';
+import { JwksClient } from 'jwks-rsa';
+import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 
 
 @Injectable()
@@ -26,7 +21,6 @@ export class AuthService {
     private readonly userService: UsersService,
   ) {}
   async login(params: LoginTcpRequest) {
-    // this.logger.debug(params);
     const { username, password } = params;
     const { access_token: accessToken, refresh_token: refreshToken } =
       await this.keycloakHttpService.exchangeUserToken({
@@ -93,7 +87,7 @@ export class AuthService {
           jwt: payload,
           // permissions: (user.roles as unknown as Role[])
           //   .flatMap((role) => role.permissions),
-          user,
+          // user: grpcUser,
           userId: user.id,
         },
       };

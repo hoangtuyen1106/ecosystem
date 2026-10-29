@@ -32,7 +32,7 @@ export class CreateUserRequestDto {
   @ApiProperty({ example: 'Nguyen Hoang' })
   @IsString()
   @IsOptional()
-  lastName?: string;
+  lastName: string;
 
   @ApiPropertyOptional({
     description: 'Giới tính',
@@ -81,7 +81,7 @@ export class UpdateUserInput {
 
   @IsString()
   @IsOptional()
-  lastName?: string;
+  lastName: string;
 
   @ApiPropertyOptional({
     description: 'Giới tính',

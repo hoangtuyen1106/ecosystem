@@ -18,3 +18,10 @@ export type ExchangeUserTokenResponse = {
   session_state: string;
   scope: string;
 };
+
+export type CreateKeyCloakUserRequest = {
+  firstName: string;
+  lastName: string;
+  password: string;
+  email: string;
+}
