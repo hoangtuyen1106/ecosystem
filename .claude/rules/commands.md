@@ -1,110 +1,87 @@
----
-name: Lệnh Phát triển
-description: Các lệnh CLI thông dụng cho phát triển, build, test, và code quality
-applies_to:
-  - Quy trình phát triển
-  - Build và serve
-  - Kiểm thử
-  - Chất lượng code
----
+# Lệnh phát triển
 
-# Lệnh Phát triển
+Chạy Nx qua npm để dùng đúng version trong workspace: `npx nx ...`.
 
-## Khởi động Môi trường Phát triển
+## Khởi động
 
 ```bash
-# Khởi động tất cả services song song (auth, jobs, executor, products trên ports 3000-3003)
+# Chạy 5 app song song: auth 3000, jobs 3001, executor 3002, products 3003, bff 3004
 npm start
 
-# Dừng tất cả services đang chạy
+# Dừng service (chỉ kill 3000-3003)
 npm stop
 
-# Khởi động infrastructure (PostgreSQL, Pulsar)
+# bff không nằm trong npm stop
+lsof -ti :3004 | xargs kill -9
+
+# Infra: postgres 5432, pulsar 6650, redis 6379, keycloak 8180
 npm run docker:infra
 
-# Khởi động tất cả services trong Docker containers
+# Apps trong Docker (không gồm bff)
 npm run docker:apps
-
-# Dừng Docker containers
 npm run docker:apps:down
+docker compose -f docker-compose.apps.yaml logs -f <service>
 ```
 
-## Build và Serve Các Service Riêng lẻ
+## Serve / build
 
 ```bash
-# Serve một app cụ thể
-npx nx serve auth
-npx nx serve jobs
-npx nx serve products
-npx nx serve executor
-
-# Xem tất cả available targets cho một service
-npx nx show project auth
-
-# Build cho production
-npx nx build auth
-
-# Build tất cả apps
-npx nx build
+npx nx serve auth        # jobs | executor | products | bff
+npx nx build bff
+npx nx run-many -t build -p auth jobs executor products bff
+npx nx affected -t build
+npx nx show project auth     # xem targets của một project
+npx nx show projects
 ```
 
-## Kiểm thử
+## Test / lint / format
 
 ```bash
-# Chạy tất cả tests
-npx nx test
-
-# Chạy tests cho một app cụ thể
-npx nx test auth
-npx nx test jobs
-
-# Chạy tests cho code thay đổi trong branch hiện tại
+npx nx test auth             # --watch để chạy watch mode
+npx nx run-many -t test
 npx nx affected -t test
-
-# Watch mode cho một app cụ thể
-npx nx test auth --watch
-```
-
-## Chất lượng Code
-
-```bash
-# Lint tất cả projects
-npx nx lint
-
-# Lint một app cụ thể
 npx nx lint auth
-
-# Lint files bị ảnh hưởng
 npx nx affected -t lint
-
-# Format code
 npx prettier --write .
 ```
 
-## Database và Code Generation
+## Database và code generation
 
 ```bash
-# Tạo Prisma client (tự động chạy trước build/serve)
+# Prisma - auth/jobs (migrate dev cho local)
 npx nx run auth:generate-prisma
-npx nx run jobs:generate-prisma
-
-# Chạy Prisma migrations
 npx nx run auth:migrate-prisma
+npx nx run jobs:generate-prisma
 npx nx run jobs:migrate-prisma
 
-# Tái tạo gRPC types từ proto files
-# Điều này xảy ra khi build qua protoc setup trong CI
+# Drizzle - products
+npx nx run products:generate-drizzle
+npx nx run products:migrate-drizzle
+
+# Sinh lại gRPC types từ proto (build của grpc tự chạy target này)
+npx nx run grpc:generate-ts-proto
 ```
 
-## Nx Utilities
+Container dùng `prisma migrate deploy` (auth/jobs) và `drizzle-kit migrate` (products) trong entrypoint.
+
+## Nx utilities
 
 ```bash
-# Trực quan hóa đồ thị phụ thuộc của tất cả projects
 npx nx graph
-
-# Hiển thị affected projects dựa trên thay đổi hiện tại
-npx nx affected:graph
-
-# Chạy nhiều tasks trên các projects
-npx nx run-many -t build -p auth jobs products executor
+npx nx reset                  # xóa cache khi build/test có kết quả lạ
+npx nx run-many -t lint test build -p auth jobs products executor bff
 ```
+
+## Tra nhanh
+
+| Muốn làm                         | Lệnh                                                         |
+| -------------------------------- | ------------------------------------------------------------ |
+| Chạy toàn bộ app                 | `npm start`                                                  |
+| Chạy 1 app                       | `npx nx serve <app>`                                         |
+| Kiểm tra thay đổi trước khi push | `npx nx affected -t lint test build`                         |
+| Đổi schema auth/jobs             | `npx nx run <auth\|jobs>:migrate-prisma`                     |
+| Đổi schema products              | `npx nx run products:generate-drizzle` rồi `migrate-drizzle` |
+| Đổi proto                        | `npx nx run grpc:generate-ts-proto`                          |
+| Xem port/target                  | `npx nx show project <project>`                              |
+
+Port canonical và trạng thái local/compose: xem [`environment-setup.md`](environment-setup.md).

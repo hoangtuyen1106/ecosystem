@@ -51,3 +51,4 @@ CLAUDE.md
 
 data/*
 apps/jobs/uploads/*
+.nx/polygraph
