@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { KeycloakModule } from './keycloak/keycloak.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -13,6 +14,8 @@ import { KeycloakModule } from './keycloak/keycloak.module';
     PrismaModule,
     UsersModule,
     AuthModule,
+    RoleModule,
+    KeycloakModule,
   ],
   providers: [],
 })

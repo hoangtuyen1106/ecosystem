@@ -8,7 +8,6 @@ import {
 } from '@ecosystem/grpc';
 import { Controller, UseInterceptors } from '@nestjs/common';
 
-import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
 @Controller()
