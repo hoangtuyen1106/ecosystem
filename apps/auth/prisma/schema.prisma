@@ -6,7 +6,7 @@ generator client {
 
 generator docs {
   provider = "node ../../node_modules/prisma-docs-generator"
-  output = "../src/generated/docs"
+  output   = "../src/generated/docs"
 }
 
 datasource db {
@@ -28,7 +28,7 @@ enum UserStatus {
 }
 
 model User {
-  id       String  @id @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
   username String @unique
   email    String @unique
   password String
@@ -46,7 +46,58 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  roles UserRole[] @relation("UserRoles")
+
   @@index([status])
   @@index([firstName, lastName])
   @@map("users")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  active      Boolean  @default(true)
+
+  users UserRole[] @relation("UserRoles")
+  permissions RolePermission[] @relation("RolePermissions")
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId String @map("user_id") @db.Uuid
+  roleId Int @map("role_id")
+
+  user User @relation("UserRoles", references: [id], fields: [userId])
+  role Role @relation("UserRoles", references: [id], fields: [roleId])
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  active      Boolean  @default(true)
+
+  roles RolePermission[] @relation("RolePermissions")
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation("RolePermissions", references: [id], fields: [roleId])
+  permission Permission @relation("RolePermissions", references: [id], fields: [permissionId])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
 }

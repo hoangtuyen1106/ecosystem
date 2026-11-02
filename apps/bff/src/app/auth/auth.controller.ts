@@ -1,6 +1,7 @@
 import { TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
 import {
-    LoginResponseDto,
+  LoginRequestDto,
+  LoginResponseDto,
   LoginTcpRequest,
   LoginTcpResponse,
   ResponseDto,
@@ -8,7 +9,6 @@ import {
 } from '@ecosystem/interfaces';
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { LoginRequestDto } from 'libs/interfaces/src/lib/gateway/auth/auth.request.dto';
 import { map } from 'rxjs';
 
 @ApiTags('Authorizer')
