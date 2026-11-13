@@ -1,19 +1,7 @@
 import { PERMISSION } from '@ecosystem/constants';
+import { CreateRoleData, UpdateRoleData } from '@ecosystem/interfaces';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-
-export interface CreateRoleData {
-  name: string;
-  description?: string;
-  permissions?: PERMISSION[];
-}
-
-export interface UpdateRoleData {
-  name?: string;
-  description?: string;
-  active?: boolean;
-  permissions?: PERMISSION[];
-}
 
 @Injectable()
 export class RoleRepository {

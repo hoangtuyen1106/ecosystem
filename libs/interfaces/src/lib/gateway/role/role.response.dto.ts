@@ -4,6 +4,9 @@ import { BaseResponseDto } from '../common/base-response.dto';
 
 export class RoleResponseDto extends BaseResponseDto {
   @ApiProperty()
+  override id: number;
+
+  @ApiProperty()
   name: string;
 
   @ApiPropertyOptional()

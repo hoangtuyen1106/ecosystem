@@ -1,20 +1,10 @@
+import { PERMISSION } from '@ecosystem/constants';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoleRepository } from './repositories/role.repository';
 import { RoleService } from './role.service';
 
-type RoleWithPermissions = NonNullable<
-  Awaited<ReturnType<RoleRepository['findById']>>
->;
-
-const permission = {
-  id: 1,
-  name: 'role.create',
-  description: 'Create role',
-  active: true,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
+type RoleEntity = NonNullable<Awaited<ReturnType<RoleRepository['findById']>>>;
 
 const roleEntity = {
   id: 1,
@@ -23,7 +13,7 @@ const roleEntity = {
   active: true,
   createdAt: new Date(),
   updatedAt: new Date(),
-  permissions: [{ roleId: 1, permissionId: 1, permission }],
+  permissions: [PERMISSION.ROLE_CREATE],
 };
 
 describe('RoleService', () => {
@@ -38,7 +28,6 @@ describe('RoleService', () => {
       update: jest.fn(),
       setPermissions: jest.fn(),
       softDelete: jest.fn(),
-      countActivePermissions: jest.fn(),
     } as unknown as jest.Mocked<RoleRepository>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -56,30 +45,18 @@ describe('RoleService', () => {
   });
 
   it('should create a role with permissions', async () => {
-    roleRepository.countActivePermissions.mockResolvedValue(1);
-    roleRepository.create.mockResolvedValue(roleEntity as unknown as RoleWithPermissions);
+    roleRepository.create.mockResolvedValue(roleEntity as RoleEntity);
 
     const result = await service.create({
       name: 'administrator',
-      permissionIds: [1],
+      permissions: [PERMISSION.ROLE_CREATE],
     });
 
     expect(roleRepository.create).toHaveBeenCalledWith({
       name: 'administrator',
-      permissionIds: [1],
+      permissions: [PERMISSION.ROLE_CREATE],
     });
-    expect(result.permissions).toEqual([
-      expect.objectContaining({ id: 1, name: 'role.create' }),
-    ]);
-  });
-
-  it('should reject unknown permission ids', async () => {
-    roleRepository.countActivePermissions.mockResolvedValue(0);
-
-    await expect(
-      service.create({ name: 'administrator', permissionIds: [99] }),
-    ).rejects.toThrow(BadRequestException);
-    expect(roleRepository.create).not.toHaveBeenCalled();
+    expect(result.permissions).toEqual([PERMISSION.ROLE_CREATE]);
   });
 
   it('should map duplicate name (P2002) to BadRequestException', async () => {
@@ -97,24 +74,23 @@ describe('RoleService', () => {
   });
 
   it('should update a role and replace permissions', async () => {
-    roleRepository.countActivePermissions.mockResolvedValue(1);
-    roleRepository.update.mockResolvedValue(roleEntity as unknown as RoleWithPermissions);
+    roleRepository.update.mockResolvedValue(roleEntity as RoleEntity);
 
     const result = await service.update({
       id: 1,
       name: 'administrator',
-      permissionIds: [1],
+      permissions: [PERMISSION.ROLE_CREATE],
     });
 
     expect(roleRepository.update).toHaveBeenCalledWith(1, {
       name: 'administrator',
-      permissionIds: [1],
+      permissions: [PERMISSION.ROLE_CREATE],
     });
     expect(result.id).toBe(1);
   });
 
   it('should soft delete a role', async () => {
-    roleRepository.softDelete.mockResolvedValue(roleEntity as unknown as RoleWithPermissions);
+    roleRepository.softDelete.mockResolvedValue(roleEntity as RoleEntity);
 
     await service.remove(1);
 
@@ -128,16 +104,26 @@ describe('RoleService', () => {
   });
 
   it('should set permissions for a role', async () => {
-    roleRepository.findById.mockResolvedValue(roleEntity as unknown as RoleWithPermissions);
-    roleRepository.countActivePermissions.mockResolvedValue(1);
-    roleRepository.setPermissions.mockResolvedValue(roleEntity as unknown as RoleWithPermissions);
+    roleRepository.findById.mockResolvedValue(roleEntity as RoleEntity);
+    roleRepository.setPermissions.mockResolvedValue(roleEntity as RoleEntity);
 
     const result = await service.setPermissions({
       roleId: 1,
-      permissionIds: [1],
+      permissions: [PERMISSION.ROLE_CREATE],
     });
 
-    expect(roleRepository.setPermissions).toHaveBeenCalledWith(1, [1]);
+    expect(roleRepository.setPermissions).toHaveBeenCalledWith(1, [
+      PERMISSION.ROLE_CREATE,
+    ]);
     expect(result.permissions).toHaveLength(1);
+  });
+
+  it('should throw NotFoundException when setting permissions on missing role', async () => {
+    roleRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.setPermissions({ roleId: 1, permissions: [] }),
+    ).rejects.toThrow(NotFoundException);
+    expect(roleRepository.setPermissions).not.toHaveBeenCalled();
   });
 });

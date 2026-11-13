@@ -2,6 +2,7 @@ import { TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
 import {
   CreateRoleRequestDto,
   CreateRoleTcpRequest,
+  formatResponseDates,
   GetRolesQueryDto,
   GetRolesTcpRequest,
   ResponseDto,
@@ -28,7 +29,7 @@ export class RolesService {
         TCP_REQUEST_MESSAGE.ROLE.CREATE,
         body,
       )
-      .pipe(map((data) => new ResponseDto({ data })));
+      .pipe(map((data) => new ResponseDto({ data: formatResponseDates(data) })));
   }
 
   findAll(query?: GetRolesQueryDto) {
@@ -37,13 +38,13 @@ export class RolesService {
         TCP_REQUEST_MESSAGE.ROLE.GET_ALL,
         query,
       )
-      .pipe(map((data) => new ResponseDto({ data })));
+      .pipe(map((data) => new ResponseDto({ data: formatResponseDates(data) })));
   }
 
   findOne(id: number) {
     return this.authClient
       .send<RoleTcpResponse, number>(TCP_REQUEST_MESSAGE.ROLE.GET_BY_ID, id)
-      .pipe(map((data) => new ResponseDto({ data })));
+      .pipe(map((data) => new ResponseDto({ data: formatResponseDates(data) })));
   }
 
   update(id: number, body: UpdateRoleRequestDto) {
@@ -52,21 +53,21 @@ export class RolesService {
         TCP_REQUEST_MESSAGE.ROLE.UPDATE,
         { id, ...body },
       )
-      .pipe(map((data) => new ResponseDto({ data })));
+      .pipe(map((data) => new ResponseDto({ data: formatResponseDates(data) })));
   }
 
   remove(id: number) {
     return this.authClient
       .send<string, number>(TCP_REQUEST_MESSAGE.ROLE.DELETE, id)
-      .pipe(map((data) => new ResponseDto({ data })));
+      .pipe(map((data) => new ResponseDto({ data: formatResponseDates(data) })));
   }
 
   setPermissions(id: number, body: SetRolePermissionsRequestDto) {
     return this.authClient
       .send<RoleTcpResponse, SetRolePermissionsTcpRequest>(
         TCP_REQUEST_MESSAGE.ROLE.SET_PERMISSIONS,
-        { roleId: id, permissionIds: body.permissionIds },
+        { roleId: id, permissions: body.permissions },
       )
-      .pipe(map((data) => new ResponseDto({ data })));
+      .pipe(map((data) => new ResponseDto({ data: formatResponseDates(data) })));
   }
 }

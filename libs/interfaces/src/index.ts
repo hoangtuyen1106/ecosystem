@@ -1,4 +1,4 @@
-export * from './lib/common/keycloak.interface';
+export * from './lib/common';
 export * from './lib/gateway/user';
 export * from './lib/gateway/auth';
 export * from './lib/gateway/role';

@@ -1,30 +1,22 @@
+import { PERMISSION } from '@ecosystem/constants';
 import {
   CreateRoleTcpRequest,
   GetRolesQueryDto,
-  PermissionResponseDto,
   RoleResponseDto,
   SetRolePermissionsTcpRequest,
   UpdateRoleTcpRequest,
 } from '@ecosystem/interfaces';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { mapPrismaError } from '../prisma/prisma-error.util';
 import { RoleRepository } from './repositories/role.repository';
 
-type RoleWithPermissions = NonNullable<
-  Awaited<ReturnType<RoleRepository['findById']>>
->;
+type RoleEntity = NonNullable<Awaited<ReturnType<RoleRepository['findById']>>>;
 
 @Injectable()
 export class RoleService {
   constructor(private readonly roleRepository: RoleRepository) {}
 
   async create(dto: CreateRoleTcpRequest): Promise<RoleResponseDto> {
-    await this.assertPermissionsExist(dto.permissionIds);
-
     try {
       const role = await this.roleRepository.create(dto);
       return this.toRoleResponse(role);
@@ -36,7 +28,7 @@ export class RoleService {
   async findAll(query?: GetRolesQueryDto): Promise<RoleResponseDto[]> {
     const includeInactive = query?.includeInactive === 'true';
     const roles = await this.roleRepository.findAll(includeInactive);
-    return roles.map((role) => this.toRoleResponse(role, includeInactive));
+    return roles.map((role) => this.toRoleResponse(role));
   }
 
   async findOne(id: number): Promise<RoleResponseDto> {
@@ -49,7 +41,6 @@ export class RoleService {
 
   async update(dto: UpdateRoleTcpRequest): Promise<RoleResponseDto> {
     const { id, ...data } = dto;
-    await this.assertPermissionsExist(data.permissionIds);
 
     try {
       const role = await this.roleRepository.update(id, data);
@@ -75,12 +66,10 @@ export class RoleService {
       throw new NotFoundException('Role not found');
     }
 
-    await this.assertPermissionsExist(dto.permissionIds);
-
     try {
       const updated = await this.roleRepository.setPermissions(
         dto.roleId,
-        dto.permissionIds,
+        dto.permissions,
       );
       return this.toRoleResponse(updated);
     } catch (error) {
@@ -88,43 +77,15 @@ export class RoleService {
     }
   }
 
-  private async assertPermissionsExist(permissionIds?: number[]) {
-    if (!permissionIds?.length) {
-      return;
-    }
-
-    const uniqueIds = [...new Set(permissionIds)];
-    const count = await this.roleRepository.countActivePermissions(uniqueIds);
-
-    if (count !== uniqueIds.length) {
-      throw new BadRequestException('One or more permissions not found');
-    }
-  }
-
-  private toRoleResponse(
-    role: RoleWithPermissions,
-    includeInactive = false,
-  ): RoleResponseDto {
-    const permissions = role.permissions
-      .map((rolePermission) => rolePermission.permission)
-      .filter((permission) => includeInactive || permission.active)
-      .map<PermissionResponseDto>((permission) => ({
-        id: permission.id,
-        name: permission.name,
-        description: permission.description ?? undefined,
-        active: permission.active,
-        createdAt: permission.createdAt,
-        updatedAt: permission.updatedAt,
-      }));
-
+  private toRoleResponse(role: RoleEntity): RoleResponseDto {
     return {
       id: role.id,
       name: role.name,
       description: role.description ?? undefined,
       active: role.active,
-      createdAt: role.createdAt,
-      updatedAt: role.updatedAt,
-      permissions,
+      createdAt: role.createdAt.toISOString(),
+      updatedAt: role.updatedAt.toISOString(),
+      permissions: role.permissions as PERMISSION[],
     };
   }
 }

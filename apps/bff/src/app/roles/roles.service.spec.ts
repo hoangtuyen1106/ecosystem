@@ -1,4 +1,8 @@
-import { TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
+import {
+  PERMISSION,
+  TCP_REQUEST_MESSAGE,
+  TCP_SERVICES,
+} from '@ecosystem/constants';
 import { TcpClient } from '@ecosystem/interfaces';
 import { Test, TestingModule } from '@nestjs/testing';
 import { firstValueFrom, of } from 'rxjs';
@@ -31,7 +35,10 @@ describe('RolesService - BFF', () => {
   });
 
   it('should send create message', async () => {
-    const body = { name: 'administrator', permissionIds: [1] };
+    const body = {
+      name: 'administrator',
+      permissions: [PERMISSION.ROLE_CREATE],
+    };
 
     const result = await firstValueFrom(service.create(body));
 
@@ -64,6 +71,56 @@ describe('RolesService - BFF', () => {
     );
   });
 
+  it('should format dates in Asia/Ho_Chi_Minh timezone', async () => {
+    authClient.send.mockReturnValueOnce(
+      of({
+        code: 'OK',
+        statusCode: 200,
+        data: {
+          id: 1,
+          createdAt: '2026-11-13T17:22:35.000Z',
+          updatedAt: '2026-11-13T18:03:39.438Z',
+        },
+      }),
+    );
+
+    const result = await firstValueFrom(service.findOne(1));
+
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        data: {
+          id: 1,
+          createdAt: '14/11/2026 00:22:35',
+          updatedAt: '14/11/2026 01:03:39',
+        },
+      }),
+    );
+  });
+
+  it('should format dates in nested arrays', async () => {
+    authClient.send.mockReturnValueOnce(
+      of({
+        code: 'OK',
+        statusCode: 200,
+        data: [
+          { id: 1, createdAt: '2026-11-13T17:22:35.000Z' },
+          { id: 2, createdAt: null },
+        ],
+      }),
+    );
+
+    const result = await firstValueFrom(service.findAll());
+
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        data: [
+          { id: 1, createdAt: '14/11/2026 00:22:35' },
+          { id: 2, createdAt: null },
+        ],
+      }),
+    );
+  });
+
   it('should send update message with id in payload', async () => {
     await firstValueFrom(service.update(1, { name: 'admin' }));
 
@@ -83,11 +140,18 @@ describe('RolesService - BFF', () => {
   });
 
   it('should send set permissions message', async () => {
-    await firstValueFrom(service.setPermissions(1, { permissionIds: [1, 2] }));
+    await firstValueFrom(
+      service.setPermissions(1, {
+        permissions: [PERMISSION.ROLE_CREATE, PERMISSION.ROLE_UPDATE],
+      }),
+    );
 
     expect(authClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.SET_PERMISSIONS,
-      { roleId: 1, permissionIds: [1, 2] },
+      {
+        roleId: 1,
+        permissions: [PERMISSION.ROLE_CREATE, PERMISSION.ROLE_UPDATE],
+      },
     );
   });
 });
