@@ -7,6 +7,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { HealthController } from './health/health.controller';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
+import { RolesModule } from './roles/roles.module';
 import { ExceptionInterceptor } from '@ecosystem/interceptors';
 import { AuthModule } from './auth/auth.module';
 
@@ -19,6 +20,7 @@ import { AuthModule } from './auth/auth.module';
     ThrottlerProvider,
     HealthModule,
     UsersModule,
+    RolesModule,
     AuthModule,
   ],
   controllers: [HealthController],

@@ -1,8 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
+import { TCP_REQUEST_MESSAGE, TCP_SERVICES, USER_STATUS } from '@ecosystem/constants';
+import { CreateUserRequestDto, TcpClient } from '@ecosystem/interfaces';
 import { Test, TestingModule } from '@nestjs/testing';
-import { throwError } from 'rxjs';
-import { CreateUserRequestDto, ResponseDto, TcpClient } from '@ecosystem/interfaces';
-import { TCP_SERVICES, USER_STATUS } from '@ecosystem/constants';
+import { firstValueFrom, of } from 'rxjs';
 import { UsersService } from './users.service';
 
 describe('UsersService - BFF', () => {
@@ -11,15 +10,18 @@ describe('UsersService - BFF', () => {
 
   beforeEach(async () => {
     userClient = {
-      send: jest.fn(),
-    } as any;
+      send: jest
+        .fn()
+        .mockReturnValue(of({ code: 'OK', statusCode: 200, data: 'CREATED' })),
+      emit: jest.fn(),
+    } as unknown as jest.Mocked<TcpClient>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         {
           provide: TCP_SERVICES.AUTH_SERVICE,
-          useValue: authClient,
+          useValue: userClient,
         },
       ],
     }).compile();
@@ -32,44 +34,25 @@ describe('UsersService - BFF', () => {
   });
 
   describe('create', () => {
-    it('should throw BadRequestException when auth service returns duplicate email error', (done) => {
+    it('should send create message to auth service', async () => {
       const createUserDto: CreateUserRequestDto = {
-        email: 'duplicate@example.com',
+        username: 'tuyennh',
+        email: 'new@example.com',
         password: 'StrongPassword123!',
         firstName: 'Test',
+        lastName: 'User',
         status: USER_STATUS.ACTIVE,
       };
 
-      const error = new Error('This email is already registered. Please use another email or login.');
-      userClient.send.mockReturnValue(throwError(() => error));
+      const result = await firstValueFrom(service.create(createUserDto));
 
-      service.create(createUserDto).subscribe({
-        error: (err) => {
-          expect(err).toBeInstanceOf(BadRequestException);
-          expect(err.message).toContain('This email is already registered');
-          done();
-        },
-      });
-    });
-
-    it('should throw BadRequestException with fallback message if error has no message', (done) => {
-      const createUserDto: CreateUserRequestDto = {
-        email: 'test@example.com',
-        password: 'StrongPassword123!',
-        firstName: 'Test',
-        status: USER_STATUS.ACTIVE,
-      };
-
-      const error = new Error();
-      userClient.send.mockReturnValue(throwError(() => error));
-
-      service.create(createUserDto).subscribe({
-        error: (err) => {
-          expect(err).toBeInstanceOf(BadRequestException);
-          expect(err.message).toBe('Failed to create user');
-          done();
-        },
-      });
+      expect(userClient.send).toHaveBeenCalledWith(
+        TCP_REQUEST_MESSAGE.USER.CREATE,
+        createUserDto,
+      );
+      expect(result.data).toEqual(
+        expect.objectContaining({ data: 'CREATED' }),
+      );
     });
   });
 });

@@ -3,7 +3,7 @@ import { Prisma } from '../../../generated/prisma/browser';
 import { PrismaService } from '../../prisma/prisma.service';
 
 import { hash } from 'bcryptjs';
-import { UserCreateInput } from 'apps/auth/src/generated/prisma/models';
+import { UserCreateInput } from '../../../generated/prisma/models';
 
 @Injectable()
 export class UserRepository {

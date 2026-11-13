@@ -6,8 +6,6 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { KeycloakModule } from './keycloak/keycloak.module';
 import { RoleModule } from './role/role.module';
-import { PermissionController } from './permission.controller';
-import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -18,9 +16,6 @@ import { PermissionModule } from './permission/permission.module';
     AuthModule,
     RoleModule,
     KeycloakModule,
-    PermissionModule,
   ],
-  providers: [],
-  controllers: [PermissionController],
 })
 export class AppModule {}

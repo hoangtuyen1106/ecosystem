@@ -18,6 +18,15 @@ enum USER {
   GET_BY_USER_ID = 'user.get_by_user_id',
 }
 
+enum ROLE {
+  CREATE = 'role.create',
+  GET_ALL = 'role.get_all',
+  GET_BY_ID = 'role.get_by_id',
+  UPDATE = 'role.update',
+  DELETE = 'role.delete',
+  SET_PERMISSIONS = 'role.set_permissions',
+}
+
 enum KEYCLOAK {
   CREATE_USER = 'keycloak.create_user',
 }
@@ -36,9 +45,10 @@ enum MEDIA {
 }
 
 export const TCP_REQUEST_MESSAGE = {
+  USER,
+  ROLE,
   INVOICE,
   PRODUCT,
-  USER,
   KEYCLOAK,
   AUTHORIZER,
   PDF_GENERATOR,
