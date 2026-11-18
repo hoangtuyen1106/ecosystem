@@ -1,11 +1,8 @@
 import { PERMISSION } from '@ecosystem/constants';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { BaseResponseDto } from '../common/base-response.dto';
+import { BaseResponseDto } from '../common';
 
 export class RoleResponseDto extends BaseResponseDto {
-  @ApiProperty()
-  override id: number;
-
   @ApiProperty()
   name: string;
 

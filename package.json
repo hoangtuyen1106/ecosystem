@@ -67,10 +67,11 @@
     "@ecosystem/nestjs": "dist/libs/nestjs/main",
     "@ecosystem/prisma": "dist/libs/prisma/main",
     "@ecosystem/configuration": "dist/libs/configuration/main",
-    "@ecosystem/redis": "dist/libs/redis/main",
     "@ecosystem/interfaces": "dist/libs/interfaces/main",
     "@ecosystem/observability": "dist/libs/observability/main",
-    "@ecosystem/decorators": "dist/libs/decorators/main"
+    "@ecosystem/decorators": "dist/libs/decorators/main",
+    "@ecosystem/redis": "dist/libs/redis/main",
+    "@ecosystem/utils": "dist/libs/utils/main"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

@@ -1,19 +1,30 @@
+import { CreateUserRequestDto } from '@ecosystem/interfaces';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/browser';
+import { UserGender, UserStatus } from '../../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
 
 import { hash } from 'bcryptjs';
-import { UserCreateInput } from '../../../generated/prisma/models';
+
+export type CreateUserData = CreateUserRequestDto & {
+  id: string;
+  keycloakId: string;
+};
 
 @Injectable()
 export class UserRepository {
   private readonly saltRounds = 9;
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(data: UserCreateInput) {
+  async create(data: CreateUserData) {
+    const { gender, status, ...rest } = data;
+
     return this.prismaService.user.create({
       data: {
-        ...data,
+        ...rest,
+        // Enum của app dùng giá trị lowercase, Prisma client dùng key uppercase
+        ...(gender ? { gender: gender.toUpperCase() as UserGender } : {}),
+        ...(status ? { status: status.toUpperCase() as UserStatus } : {}),
         password: await hash(data.password, this.saltRounds),
       },
     });

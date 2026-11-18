@@ -1,16 +1,17 @@
 import { PERMISSION } from '@ecosystem/constants';
 import {
   CreateRoleTcpRequest,
-  GetRolesQueryDto,
+  GetRolesCursorTcpRequest,
+  GetRolesOffsetTcpRequest,
+  RoleListCursorTcpResponse,
+  RoleListOffsetTcpResponse,
   RoleResponseDto,
   SetRolePermissionsTcpRequest,
   UpdateRoleTcpRequest,
 } from '@ecosystem/interfaces';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { mapPrismaError } from '../prisma/prisma-error.util';
-import { RoleRepository } from './repositories/role.repository';
-
-type RoleEntity = NonNullable<Awaited<ReturnType<RoleRepository['findById']>>>;
+import { RoleEntity, RoleRepository } from './repositories/role.repository';
 
 @Injectable()
 export class RoleService {
@@ -25,10 +26,24 @@ export class RoleService {
     }
   }
 
-  async findAll(query?: GetRolesQueryDto): Promise<RoleResponseDto[]> {
-    const includeInactive = query?.includeInactive === 'true';
-    const roles = await this.roleRepository.findAll(includeInactive);
-    return roles.map((role) => this.toRoleResponse(role));
+  async findAllOffset(
+    query: GetRolesOffsetTcpRequest,
+  ): Promise<RoleListOffsetTcpResponse> {
+    const { items, meta } = await this.roleRepository.findAllRole(query);
+    return {
+      items: items.map((role) => this.toRoleResponse(role)),
+      meta,
+    };
+  }
+
+  async findAllCursor(
+    query: GetRolesCursorTcpRequest,
+  ): Promise<RoleListCursorTcpResponse> {
+    const { items, meta } = await this.roleRepository.findAllCursor(query);
+    return {
+      items: items.map((role) => this.toRoleResponse(role)),
+      meta,
+    };
   }
 
   async findOne(id: number): Promise<RoleResponseDto> {

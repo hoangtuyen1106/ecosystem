@@ -41,9 +41,7 @@
     ]
   },
   "permissions": {
-    "allow": [
-      "Bash(bash .claude/scripts/notify-sound.sh *)"
-    ]
+    "allow": ["Bash(bash .claude/scripts/notify-sound.sh *)"]
   },
   "documentation": {
     "hooksSetup": ".claude/hooks-setup.md",

@@ -1,7 +1,10 @@
 import {
   CreateRoleRequestDto,
-  GetRolesQueryDto,
+  GetRolesCursorQueryDto,
+  GetRolesOffsetQueryDto,
   ResponseDto,
+  RoleListCursorTcpResponse,
+  RoleListOffsetTcpResponse,
   RoleResponseDto,
   SetRolePermissionsRequestDto,
   UpdateRoleRequestDto,
@@ -43,11 +46,28 @@ export class RolesController {
 
   @Authorization({ secured: true })
   @Get()
-  @ApiOperation({ summary: 'Get all roles' })
-  @ApiQuery({ name: 'includeInactive', required: false, enum: ['true', 'false'] })
-  @ApiOkResponse({ type: ResponseDto<RoleResponseDto> })
-  findAll(@Query() query: GetRolesQueryDto) {
+  @ApiOperation({ summary: 'Get all roles (offset pagination)' })
+  @ApiQuery({
+    name: 'includeInactive',
+    required: false,
+    enum: ['true', 'false'],
+  })
+  @ApiOkResponse({ type: ResponseDto<RoleListOffsetTcpResponse> })
+  findAll(@Query() query: GetRolesOffsetQueryDto) {
     return this.rolesService.findAll(query);
+  }
+
+  @Authorization({ secured: true })
+  @Get('cursor')
+  @ApiOperation({ summary: 'Get all roles (cursor pagination)' })
+  @ApiQuery({
+    name: 'includeInactive',
+    required: false,
+    enum: ['true', 'false'],
+  })
+  @ApiOkResponse({ type: ResponseDto<RoleListCursorTcpResponse> })
+  findAllCursor(@Query() query: GetRolesCursorQueryDto) {
+    return this.rolesService.findAllCursor(query);
   }
 
   @Authorization({ secured: true })

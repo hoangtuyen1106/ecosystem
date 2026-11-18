@@ -1,15 +1,17 @@
 import { HTTP_MESSAGE, TCP_REQUEST_MESSAGE } from '@ecosystem/constants';
 import { RequestParams } from '@ecosystem/decorators';
+import { TcpLoggingInterceptor } from '@ecosystem/interceptors';
 import {
   CreateRoleTcpRequest,
-  GetRolesTcpRequest,
+  GetRolesCursorTcpRequest,
+  GetRolesOffsetTcpRequest,
   Response,
-  RoleListTcpResponse,
+  RoleListCursorTcpResponse,
+  RoleListOffsetTcpResponse,
   RoleTcpResponse,
   SetRolePermissionsTcpRequest,
-  UpdateRoleTcpRequest,
+  UpdateRoleTcpRequest
 } from '@ecosystem/interfaces';
-import { TcpLoggingInterceptor } from '@ecosystem/interceptors';
 import { Controller, UseInterceptors } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { RoleService } from './role.service';
@@ -26,9 +28,15 @@ export class RoleController {
   }
 
   @MessagePattern(TCP_REQUEST_MESSAGE.ROLE.GET_ALL)
-  async findAll(@RequestParams() query: GetRolesTcpRequest) {
-    const roles = await this.roleService.findAll(query);
-    return Response.success<RoleListTcpResponse>(roles);
+  async findAllOffset(@RequestParams() query: GetRolesOffsetTcpRequest) {
+    const roles = await this.roleService.findAllOffset(query);
+    return Response.success<RoleListOffsetTcpResponse>(roles);
+  }
+
+  @MessagePattern(TCP_REQUEST_MESSAGE.ROLE.GET_ALL_CURSOR)
+  async findAllCursor(@RequestParams() query: GetRolesCursorTcpRequest) {
+    const roles = await this.roleService.findAllCursor(query);
+    return Response.success<RoleListCursorTcpResponse>(roles);
   }
 
   @MessagePattern(TCP_REQUEST_MESSAGE.ROLE.GET_BY_ID)

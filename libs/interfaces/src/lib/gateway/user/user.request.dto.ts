@@ -1,13 +1,17 @@
 import { USER_GENDER, USER_STATUS } from '@ecosystem/constants';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
   IsString,
   IsStrongPassword,
+  Max,
+  Min,
 } from 'class-validator';
 
 export class CreateUserRequestDto {
@@ -75,7 +79,7 @@ export class CreateUserRequestDto {
   status?: USER_STATUS;
 }
 
-export class UpdateUserInput {
+export class UpdateUserRequestDto {
   @IsString()
   firstName: string;
 

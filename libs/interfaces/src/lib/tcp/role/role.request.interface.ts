@@ -1,6 +1,8 @@
 import { PERMISSION } from '@ecosystem/constants';
 import {
   CreateRoleRequestDto,
+  GetRolesCursorQueryDto,
+  GetRolesOffsetQueryDto,
   GetRolesQueryDto,
   UpdateRoleRequestDto,
 } from '../../gateway/role';
@@ -9,7 +11,11 @@ export type CreateRoleTcpRequest = CreateRoleRequestDto;
 
 export type UpdateRoleTcpRequest = UpdateRoleRequestDto & { id: number };
 
-export type GetRolesTcpRequest = GetRolesQueryDto | undefined;
+export type GetRolesOffsetTcpRequest = GetRolesOffsetQueryDto;
+
+export type GetRolesCursorTcpRequest = GetRolesCursorQueryDto;
+
+export type GetRolesTcpRequest = GetRolesQueryDto;
 
 export type DeleteRoleTcpRequest = number;
 

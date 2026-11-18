@@ -21,6 +21,7 @@ enum USER {
 enum ROLE {
   CREATE = 'role.create',
   GET_ALL = 'role.get_all',
+  GET_ALL_CURSOR = 'role.get_all_cursor',
   GET_BY_ID = 'role.get_by_id',
   UPDATE = 'role.update',
   DELETE = 'role.delete',

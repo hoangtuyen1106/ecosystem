@@ -10,6 +10,8 @@ import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { ExceptionInterceptor } from '@ecosystem/interceptors';
 import { AuthModule } from './auth/auth.module';
+import { GrpcClientsModule } from './grpc-clients.module';
+import { UserGuard } from './common/guards/user.guard';
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
     }),
     ThrottlerProvider,
+    GrpcClientsModule,
     HealthModule,
     UsersModule,
     RolesModule,
@@ -25,6 +28,10 @@ import { AuthModule } from './auth/auth.module';
   ],
   controllers: [HealthController],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: UserGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ExceptionInterceptor,

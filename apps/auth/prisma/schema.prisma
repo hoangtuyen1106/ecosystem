@@ -14,17 +14,17 @@ datasource db {
 }
 
 enum UserGender {
-  MALE
-  FEMALE
-  OTHER
-  UNKNOWN
+  MALE    @map("male")
+  FEMALE  @map("female")
+  OTHER   @map("other")
+  UNKNOWN @map("unknown")
 }
 
 enum UserStatus {
-  ACTIVE
-  INACTIVE
-  BLOCKED
-  PENDING
+  ACTIVE   @map("active")
+  INACTIVE @map("inactive")
+  BLOCKED  @map("blocked")
+  PENDING  @map("pending")
 }
 
 model User {
@@ -46,7 +46,8 @@ model User {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  roles UserRole[] @relation("UserRoles")
+  roles        UserRole[] @relation("UserRoles")
+  createdRoles Role[]     @relation("RoleCreatedBy")
 
   @@index([status])
   @@index([firstName, lastName])
@@ -54,22 +55,25 @@ model User {
 }
 
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?  @db.VarChar(255)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
-  active      Boolean  @default(true)
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String? @db.VarChar(255)
+  active      Boolean @default(true)
 
-  users UserRole[] @relation("UserRoles")
-  permissions String[] @default([])
+  users       UserRole[] @relation("UserRoles")
+  permissions String[]   @default([])
+
+  createdBy String?  @map("created_by") @db.Uuid
+  created   User?    @relation("RoleCreatedBy", fields: [createdBy], references: [id])
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("roles")
 }
 
 model UserRole {
   userId String @map("user_id") @db.Uuid
-  roleId Int @map("role_id")
+  roleId Int    @map("role_id")
 
   user User @relation("UserRoles", references: [id], fields: [userId])
   role Role @relation("UserRoles", references: [id], fields: [roleId])
