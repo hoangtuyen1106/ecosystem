@@ -6,9 +6,12 @@
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | auth không có endpoint GraphQL                    | `AuthResolver` tồn tại nhưng `app.module.ts` chưa import `GraphQLModule`                         | Thêm `GraphQLModule` hoặc dùng gRPC `Authenticate`                              |
 | `bff:test` fail "unexpected token"                | Jest không transform `node_modules/uuid` (ESM `export`) — lỗi hạ tầng có từ trước, không do role | Cấu hình `transformIgnorePatterns`/`transform` cho `uuid` trong jest config bff |
-| `createdBy` của role luôn là UUID giả             | `role.repository.create()` hardcode `00000000-0000-0000-0000-000000000001`                       | Cần truyền user id thật từ request context qua TCP                              |
-| `PATCH /roles/:id` gửi `active` không có tác dụng | DTO/`UpdateRoleData` đã bỏ `active` (by design)                                                  | Dùng `PATCH /roles/:id/status`                                                  |
-| Swagger bff hiển thị `includeInactive`            | Controller còn `@ApiQuery` cũ, DTO thực tế dùng `isActive`                                       | Sửa decorator Swagger cho khớp DTO                                              |
+| `authorId` của role luôn là UUID giả              | `role.repository.create()` hardcode `00000000-0000-0000-0000-000000000001`                       | Cần truyền user id thật từ request context qua TCP; cột nullable để chấp nhận dữ liệu cũ |
+| `PATCH /roles/:id` gửi `status` không có tác dụng | DTO/`UpdateRoleData` đã bỏ `status` (by design)                                                  | Dùng `PATCH /roles/:id/status` body `{ status: 'active' \| 'inactive' }`        |
+| API cũ dùng `active`/`createdBy`                  | Đã đổi thành `status` (enum) và `authorId`/`authorName`                                          | Client cũ gửi `active` bị `whitelist` loại bỏ; cập nhật client                  |
+| Type lỗi `ROLE_STATUS[]` not assignable `RoleStatus[]` | Prisma sinh enum theo **tên member**; nếu member viết hoa thì client là `'ACTIVE'`             | Đặt member enum chữ thường trong `schema.prisma` rồi `generate-prisma`          |
+| `prisma migrate dev` báo "cannot be executed" khi thêm cột NOT NULL | Bảng có dữ liệu cũ (vd `roles` 11 dòng, `author_id` rỗng, `users` trống)                       | Cho cột nullable, hoặc `--create-only` rồi viết tay `RENAME COLUMN`/backfill; áp SQL bằng `psql` và `prisma migrate resolve --applied` |
+| `nx build` fail ở `libs/utils/.../vn-date.util.ts` (TS4111) | `libs/decorators` build strict `noPropertyAccessFromIndexSignature` khi kéo file utils       | Không dùng `Record<string, ...>` rồi truy cập `.key`; dùng object literal có key cố định |
 | Xoá role bị lỗi FK `user_roles`                   | FK `user_roles.role_id` là `ON DELETE RESTRICT`                                                  | Repository đã `deleteMany` `user_roles` trong transaction trước khi xoá role    |
 | bff trả 200 dù không gửi token                    | Kiểm tra route có `@Authorization({ secured: true })` và `UserGuard` là `APP_GUARD`              | `UserGuard` đã đăng ký trong `apps/bff/src/app/app.module.ts`                   |
 | `npm stop` không dừng jobs                        | Script chỉ kill port 3000–3003 (bff/auth/executor/products); jobs ở 3004                         | `lsof -ti :3004 \| xargs kill -9`                                               |
@@ -24,7 +27,8 @@
 - `prisma.config.ts` (auth) dùng `env('DATABASE_URL')` — không còn fallback; migrate sẽ fail nếu thiếu biến.
 - DB chưa tồn tại → tạo bằng `docker/init-db.sql` hoặc `docker compose exec postgres psql -U postgres -c 'CREATE DATABASE auth;'`.
 - Migration drift → chạy `npx nx run <service>:migrate-prisma --name=<mo_ta>` để sinh migration mới.
-- Auth schema đã đồng bộ tới `20261118053136_userrole_fk_on_update_restrict`; nếu DB cũ lệch (serial/thiếu `deleted`, thiếu `permissions String[]`) thì tạo lại DB hoặc chạy migrate deploy từ đầu.
+- Auth schema đã đồng bộ tới `20261118184004_role_author` (gồm `search_unicode`, `roles.status`, rename `created_by → author_id`); nếu DB cũ lệch (serial/thiếu `deleted`, thiếu `permissions String[]`) thì tạo lại DB hoặc chạy migrate deploy từ đầu.
+- Migration `20261118184004_role_author` viết tay là `RENAME COLUMN`/`RENAME CONSTRAINT` (Prisma sinh drop/add → mất `created_by`)\). Nếu reset DB thì chạy SQL này trước, `psql` áp xong mới `migrate resolve --applied`.
 - Lỗi `P2002` dù đã kiểm tra trùng tên → race giữa `existsByName` và insert; DB unique vẫn là chốt chặn, service map thành 400.
 - Xoá role còn `user_roles` → repository đã xử lý transaction; nếu gọi Prisma trực tiếp phải tự `userRole.deleteMany` trước (FK RESTRICT).
 - `email`/`username` không còn unique → dùng `findFirst`, không dùng `findUnique({ where: { email } })`.

@@ -14,21 +14,26 @@ datasource db {
 }
 
 enum UserGender {
-  MALE    @map("male")
-  FEMALE  @map("female")
-  OTHER   @map("other")
-  UNKNOWN @map("unknown")
+  male
+  female
+  other
+  unknown
 }
 
 enum UserStatus {
-  ACTIVE   @map("active")
-  INACTIVE @map("inactive")
-  BLOCKED  @map("blocked")
-  PENDING  @map("pending")
+  active
+  inactive
+  blocked
+  pending
+}
+
+enum RoleStatus {
+  active
+  inactive
 }
 
 model User {
-  id       String @id @default(uuid()) @db.Uuid
+  id       String  @id @default(uuid()) @db.Uuid
   username String  @db.VarChar(50)
   email    String  @db.VarChar(255)
   password String
@@ -36,19 +41,20 @@ model User {
 
   keycloakId String? @unique @map("keycloak_id")
 
-  firstName String      @map("first_name") @db.VarChar(50)
-  lastName  String?     @map("last_name") @db.VarChar(50)
-  avatar    String?     @db.VarChar(100)
-  phone     String?     @db.VarChar(20)
-  birthday  String?     @db.VarChar(50)
-  gender    UserGender?
-  status    UserStatus  @default(ACTIVE)
+  firstName     String      @map("first_name") @db.VarChar(50)
+  lastName      String?     @map("last_name") @db.VarChar(50)
+  avatar        String?     @db.VarChar(100)
+  phone         String?     @db.VarChar(20)
+  birthday      String?     @db.VarChar(50)
+  gender        UserGender?
+  status        UserStatus  @default(active)
+  searchUnicode String?     @map("search_unicode") @db.VarChar(255)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  roles        UserRole[] @relation("UserRoles")
-  createdRoles Role[]     @relation("RoleCreatedBy")
+  roles       UserRole[]
+  roleAuthor Role[]
 
   @@index([status])
   @@index([firstName, lastName])
@@ -56,16 +62,19 @@ model User {
 }
 
 model Role {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String? @db.VarChar(255)
-  active      Boolean @default(true)
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?    @db.VarChar(255)
+  status      RoleStatus @default(active)
 
-  users       UserRole[] @relation("UserRoles")
+  users       UserRole[]
   permissions String[]   @default([])
 
-  createdBy String?  @map("created_by") @db.Uuid
-  created   User?    @relation("RoleCreatedBy", fields: [createdBy], references: [id])
+  searchUnicode String? @map("search_unicode") @db.VarChar(255)
+
+  authorId String? @map("author_id") @db.Uuid
+  author   User?   @relation(fields: [authorId], references: [id])
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -76,8 +85,8 @@ model UserRole {
   userId String @map("user_id") @db.Uuid
   roleId Int    @map("role_id")
 
-  user User @relation("UserRoles", references: [id], fields: [userId], onUpdate: Restrict)
-  role Role @relation("UserRoles", references: [id], fields: [roleId], onUpdate: Restrict)
+  user User @relation(references: [id], fields: [userId], onUpdate: Restrict)
+  role Role @relation(references: [id], fields: [roleId], onUpdate: Restrict)
 
   @@id([userId, roleId])
   @@index([roleId])

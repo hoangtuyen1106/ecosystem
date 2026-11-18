@@ -92,7 +92,7 @@ export class RolesService {
     return this.authClient
       .send<RoleTcpResponse, ChangeRoleStatusTcpRequest>(
         TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS,
-        { id, active: body.active },
+        { id, status: body.status },
       )
       .pipe(
         map((data) => new ResponseDto({ data: formatResponseDates(data) })),

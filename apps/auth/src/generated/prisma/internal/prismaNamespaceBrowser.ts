@@ -86,6 +86,7 @@ export const UserScalarFieldEnum = {
   birthday: 'birthday',
   gender: 'gender',
   status: 'status',
+  searchUnicode: 'searchUnicode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -97,9 +98,10 @@ export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
-  active: 'active',
+  status: 'status',
   permissions: 'permissions',
-  createdBy: 'createdBy',
+  searchUnicode: 'searchUnicode',
+  authorId: 'authorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

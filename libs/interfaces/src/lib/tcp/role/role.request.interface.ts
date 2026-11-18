@@ -1,4 +1,4 @@
-import { PERMISSION } from '@ecosystem/constants';
+import { PERMISSION, ROLE_STATUS } from '@ecosystem/constants';
 import {
   CreateRoleRequestDto,
   GetRolesCursorQueryDto,
@@ -21,7 +21,7 @@ export type DeleteRoleTcpRequest = number;
 
 export type ChangeRoleStatusTcpRequest = {
   id: number;
-  active: boolean;
+  status: ROLE_STATUS;
 };
 
 export type SetRolePermissionsTcpRequest = {

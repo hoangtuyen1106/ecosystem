@@ -1,15 +1,12 @@
-import { FULL_INFO, INFO_TYPE, LIST_INFO, PERMISSION, SIMPLE_INFO } from '@ecosystem/constants';
-import { toBoolean } from '@ecosystem/utils';
+import { FULL_INFO, INFO_TYPE, LIST_INFO, PERMISSION, ROLE_STATUS, SIMPLE_INFO } from '@ecosystem/constants';
 import {
   ApiProperty,
   ApiPropertyOptional,
   IntersectionType,
 } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
-  IsBoolean,
   IsDefined,
   IsIn,
   IsNotEmpty,
@@ -20,6 +17,7 @@ import {
 import { CursorPaginationDto, OffsetPaginationDto } from '../common';
 
 const PERMISSION_VALUES = Object.values(PERMISSION);
+const ROLE_STATUS_VALUES = Object.values(ROLE_STATUS);
 
 export class CreateRoleRequestDto {
   @ApiProperty({ example: 'administrator' })
@@ -65,10 +63,10 @@ export class UpdateRoleRequestDto {
 }
 
 export class ChangeRoleStatusRequestDto {
-  @ApiProperty({ example: false })
-  @IsDefined({ message: 'active là bắt buộc' })
-  @IsBoolean()
-  active: boolean;
+  @ApiProperty({ enum: ROLE_STATUS_VALUES, example: ROLE_STATUS.INACTIVE })
+  @IsDefined({ message: 'status là bắt buộc' })
+  @IsIn(ROLE_STATUS_VALUES)
+  status: ROLE_STATUS;
 }
 
 export class SetRolePermissionsRequestDto {
@@ -89,10 +87,12 @@ export class GetRolesQueryDto {
   @IsString()
   search?: string;
 
+  @ApiPropertyOptional({ enum: ROLE_STATUS_VALUES, isArray: true })
   @IsOptional()
-  @Transform(toBoolean)
-  @IsBoolean()
-  isActive?: boolean;
+  @IsArray()
+  @ArrayUnique()
+  @IsIn(ROLE_STATUS_VALUES, { each: true })
+  status?: ROLE_STATUS[];
 
   @IsOptional()
   @IsString()

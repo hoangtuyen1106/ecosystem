@@ -45,9 +45,12 @@ npx nx run products:migrate-drizzle      # áp dụng migration
 
 Quy ước hiện tại:
 
-- `update` chỉ cho sửa `name`, `description`, `permissions`; đổi trạng thái phải qua `role.change_status` / `PATCH /roles/:id/status`.
+- `update` chỉ cho sửa `name`, `description`, `permissions`; đổi trạng thái phải qua `role.change_status` / `PATCH /roles/:id/status` body `{ status: ROLE_STATUS }`.
 - `remove` là hard delete, xoá `user_roles` liên quan trong cùng transaction.
 - TCP controller **không** chạy `class-validator`; validation nằm ở DTO bff, service check tồn tại/trùng tên.
+- Thêm trạng thái mới: sửa `enum RoleStatus` trong `schema.prisma` (member **chữ thường**) **và** `ROLE_STATUS` trong `libs/constants/src/lib/enum/role.enum.ts`; chạy `npx nx run auth:generate-prisma`.
+- FK người tạo là `authorId` (nullable) → relation `author`; response trả `authorId` + `authorName`.
+- Lọc theo trạng thái: `status` là mảng, repository dùng `{ in: status }`.
 
 ## Sửa gRPC contract
 

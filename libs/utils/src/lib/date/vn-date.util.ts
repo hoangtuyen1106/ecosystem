@@ -83,10 +83,10 @@ export function parseDate(
   const match = new RegExp(`^${source}$`).exec(str.trim());
   if (!match) return null;
 
-  const v: Record<string, number> = { HH: 0, mm: 0, ss: 0 };
-  order.forEach((token, i) => (v[token] = Number(match[i + 1])));
+  const v = { yyyy: 0, MM: 0, dd: 0, HH: 0, mm: 0, ss: 0 };
+  order.forEach((token, i) => (v[token as keyof typeof v] = Number(match[i + 1])));
 
-  if (v.yyyy === undefined || v.MM === undefined || v.dd === undefined) {
+  if (!v.yyyy || !v.MM || !v.dd) {
     return null;
   }
   if (v.HH > 23 || v.mm > 59 || v.ss > 59) return null;

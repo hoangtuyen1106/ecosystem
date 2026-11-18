@@ -3,6 +3,7 @@ import {
   INFO_TYPE,
   LIST_INFO,
   PERMISSION,
+  ROLE_STATUS,
   SIMPLE_INFO,
 } from '@ecosystem/constants';
 import {
@@ -90,11 +91,7 @@ export class RoleRepository {
 
   // Dựng phần query dùng chung cho cả phân trang offset và cursor
   private buildQuery(query: GetRolesQueryDto) {
-    const {
-      sortBy = 'id',
-      sortOrder = 'ASC',
-      field = SIMPLE_INFO,
-    } = query;
+    const { sortBy = 'id', sortOrder = 'ASC', field = SIMPLE_INFO } = query;
 
     return {
       where: this.buildWhere(query),
@@ -104,7 +101,7 @@ export class RoleRepository {
   }
 
   private buildWhere(query: GetRolesQueryDto): Prisma.RoleWhereInput {
-    const { search, isActive } = query;
+    const { search, status } = query;
 
     const where: Prisma.RoleWhereInput = {};
 
@@ -116,8 +113,9 @@ export class RoleRepository {
       ];
     }
 
-    if (isActive !== undefined) {
-      where.active = isActive;
+    // status là mảng (lọc nhiều trạng thái cùng lúc) nên dùng `in`
+    if (status?.length) {
+      where.status = { in: status };
     }
 
     return where;
@@ -152,28 +150,28 @@ export class RoleRepository {
       id: true,
       name: true,
       description: true,
-      active: true,
+      status: true,
       permissions: true,
       createdAt: true,
       updatedAt: true,
     };
 
     // LIST_INFO chỉ trả các thông tin cơ bản để hiển thị danh sách.
-    // createdBy đi kèm để toRoleResponse có thể lấy tên người tạo.
+    // authorId đi kèm để toRoleResponse có thể lấy tên người tạo.
     const ROLE_SELECT_BY_INFO: Record<INFO_TYPE, Prisma.RoleSelect> = {
       [FULL_INFO]: {
         ...BASE_SELECT,
-        createdBy: true,
+        authorId: true,
       },
       [LIST_INFO]: {
         id: true,
         name: true,
-        active: true,
-        createdBy: true,
+        status: true,
+        authorId: true,
       },
       [SIMPLE_INFO]: {
         ...BASE_SELECT,
-        createdBy: true,
+        authorId: true,
       },
     };
 
@@ -182,21 +180,19 @@ export class RoleRepository {
     };
   }
 
-  private getCreatedByRelation() {
-    return {
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-      },
-    };
-  }
-
   async findOne(id: number) {
     const role = await this.prismaService.role.findUnique({
       where: { id },
-      include: { created: this.getCreatedByRelation() },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
 
     if (!role) {
@@ -209,7 +205,7 @@ export class RoleRepository {
   async update(id: number, data: UpdateRoleData) {
     await this.findOne(id);
 
-    // Chỉ pick các field được phép sửa. `active` cố tình bị loại bỏ —
+    // Chỉ pick các field được phép sửa. `status` cố tình bị loại bỏ —
     // đổi trạng thái phải đi qua changeStatus để có một đường duy nhất.
     const { name, description, permissions } = data;
 
@@ -221,7 +217,16 @@ export class RoleRepository {
         // PATCH permissions thay thế toàn bộ danh sách (giống setPermissions)
         ...(permissions !== undefined ? { permissions } : {}),
       },
-      include: { created: this.getCreatedByRelation() },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
   }
 
@@ -250,9 +255,18 @@ export class RoleRepository {
       data: {
         ...roleData,
         permissions,
-        createdBy: userId,
+        authorId: userId,
       },
-      include: { created: this.getCreatedByRelation() },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
   }
 
@@ -261,17 +275,35 @@ export class RoleRepository {
     return this.prismaService.role.update({
       where: { id },
       data: { permissions },
-      include: { created: this.getCreatedByRelation() },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
   }
 
   // Bật/tắt trạng thái hoạt động (thay cho delete mềm)
-  async changeStatus(id: number, active: boolean) {
+  async changeStatus(id: number, status: ROLE_STATUS) {
     await this.findOne(id);
     return this.prismaService.role.update({
       where: { id },
-      data: { active },
-      include: { created: this.getCreatedByRelation() },
+      data: { status },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
   }
 
@@ -283,5 +315,5 @@ export class RoleRepository {
   }
 }
 
-// Mọi query của repository đều include relation `created` (xem getCreatedByRelation)
+
 export type RoleEntity = Awaited<ReturnType<RoleRepository['findOne']>>;

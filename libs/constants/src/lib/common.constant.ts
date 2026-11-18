@@ -5,19 +5,10 @@ export const SIMPLE_INFO = 'simple_info';
 
 export type INFO_TYPE = typeof FULL_INFO | typeof LIST_INFO | typeof SIMPLE_INFO;
 
-
-export enum USER_GENDER {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
-
-export enum USER_STATUS {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  BLOCKED = 'blocked',
-  PENDING = 'pending',
-}
+export const ACTIVE = 'active';
+export const INACTIVE = 'inactive';
+export const BLOCKED = 'blocked';
+export const PENDING = 'pending';
 
 export const PORT = 3000;
 

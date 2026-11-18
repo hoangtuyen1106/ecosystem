@@ -3,6 +3,11 @@ export enum ROLE {
   ACCOUNTANT = 'accountant',
 }
 
+export enum ROLE_STATUS {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 export enum PERMISSION {
   /* INVOICE */
   INVOICE_CREATE = 'invoice.create',

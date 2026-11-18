@@ -1,5 +1,6 @@
 import {
   PERMISSION,
+  ROLE_STATUS,
   TCP_REQUEST_MESSAGE,
   TCP_SERVICES,
 } from '@ecosystem/constants';
@@ -54,11 +55,11 @@ describe('RolesService - BFF', () => {
   });
 
   it('should send get all message', async () => {
-    await firstValueFrom(service.findAll({ isActive: true }));
+    await firstValueFrom(service.findAll({ status: [ROLE_STATUS.ACTIVE] }));
 
     expect(authClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.GET_ALL,
-      { isActive: true },
+      { status: [ROLE_STATUS.ACTIVE] },
     );
   });
 
@@ -140,11 +141,11 @@ describe('RolesService - BFF', () => {
   });
 
   it('should send change status message', async () => {
-    await firstValueFrom(service.changeStatus(1, { active: false }));
+    await firstValueFrom(service.changeStatus(1, { status: ROLE_STATUS.INACTIVE }));
 
     expect(authClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS,
-      { id: 1, active: false },
+      { id: 1, status: ROLE_STATUS.INACTIVE },
     );
   });
 

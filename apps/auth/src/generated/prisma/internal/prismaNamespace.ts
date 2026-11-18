@@ -681,6 +681,7 @@ export const UserScalarFieldEnum = {
   birthday: 'birthday',
   gender: 'gender',
   status: 'status',
+  searchUnicode: 'searchUnicode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -692,9 +693,10 @@ export const RoleScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
-  active: 'active',
+  status: 'status',
   permissions: 'permissions',
-  createdBy: 'createdBy',
+  searchUnicode: 'searchUnicode',
+  authorId: 'authorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -814,6 +816,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RoleStatus'
+ */
+export type EnumRoleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'RoleStatus[]'
+ */
+export type ListEnumRoleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RoleStatus[]'>
     
 
 

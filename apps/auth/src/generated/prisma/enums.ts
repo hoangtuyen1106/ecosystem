@@ -10,20 +10,28 @@
 */
 
 export const UserGender = {
-  MALE: 'MALE',
-  FEMALE: 'FEMALE',
-  OTHER: 'OTHER',
-  UNKNOWN: 'UNKNOWN'
+  male: 'male',
+  female: 'female',
+  other: 'other',
+  unknown: 'unknown'
 } as const
 
 export type UserGender = (typeof UserGender)[keyof typeof UserGender]
 
 
 export const UserStatus = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
-  BLOCKED: 'BLOCKED',
-  PENDING: 'PENDING'
+  active: 'active',
+  inactive: 'inactive',
+  blocked: 'blocked',
+  pending: 'pending'
 } as const
 
 export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+
+
+export const RoleStatus = {
+  active: 'active',
+  inactive: 'inactive'
+} as const
+
+export type RoleStatus = (typeof RoleStatus)[keyof typeof RoleStatus]

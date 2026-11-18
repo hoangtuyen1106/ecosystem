@@ -53,6 +53,7 @@ Import qua alias `@ecosystem/*` (xem `tsconfig.base.json`). `main.ts` phải b�
 - **auth** xử lý nghiệp vụ role: `RoleController` (`@MessagePattern`) → `RoleService` → `RoleRepository` (Prisma). Không có HTTP route.
 - **bff** expose REST `/api/v1/roles`; `RolesService` gửi TCP message (`TCP_REQUEST_MESSAGE.ROLE.*`) tới `TCP_SERVICES.AUTH_SERVICE` (port `TCP_AUTH_PORT` 3103 khi chạy local).
 - Message hiện có: `role.create`, `role.get_all` (offset), `role.get_all_cursor`, `role.get_by_id`, `role.update`, `role.delete`, `role.change_status`, `role.set_permissions`.
+- Trạng thái role là enum `RoleStatus` (`active`/`inactive`); list nhận `status` dạng **mảng** và lọc bằng `where.status = { in: status }`; đổi trạng thái đi qua `PATCH /roles/:id/status` body `{ status }`.
 - Phân quyền lưu ở `Role.permissions String[]` theo enum `PERMISSION` — **không có bảng Permission riêng**.
 - `UserRole` là bảng nối user ↔ role; FK `ON DELETE RESTRICT`, `ON UPDATE RESTRICT`; chưa có API gán role cho user.
 - Auth guard ở bff: `UserGuard` đăng ký `APP_GUARD`, đọc decorator `@Authorization({ secured })`; route `secured` gọi gRPC `AuthorizerService.VerifyUserToken`.
@@ -80,7 +81,8 @@ Import qua alias `@ecosystem/*` (xem `tsconfig.base.json`). `main.ts` phải b�
 ## Dữ liệu
 
 - **Prisma 7** (auth, jobs): generator `prisma-client`, output `apps/*/src/generated/prisma`, `moduleFormat = "cjs"`; runtime dùng `PrismaPg` + `pg.Pool` từ `DATABASE_URL`. Không sửa tay thư mục generated. Mỗi service có migration riêng.
-  - Model RBAC trong `apps/auth`: `User` (UUID; `email`/`username` không còn unique, có `deleted`), `Role` (`id Int`, `name @unique`, `permissions String[]`, `createdBy` → `User` SetNull), `UserRole` (composite PK `[userId, roleId]`, FK `RESTRICT` cả delete/update, index `role_id`).
+  - Model RBAC trong `apps/auth`: `User` (UUID; `email`/`username` không còn unique, có `deleted`, `status UserStatus`, `searchUnicode`), `Role` (`id Int`, `name @unique`, `status RoleStatus` mặc định `active`, `permissions String[]`, `authorId` → `User` (**nullable**, `ON DELETE SET NULL`), `searchUnicode`), `UserRole` (composite PK `[userId, roleId]`, FK `RESTRICT` cả delete/update, index `role_id`).
+  - Enum Prisma dùng **member chữ thường** (`UserGender.male`, `UserStatus.active`, `RoleStatus.inactive`) để giá trị client trùng `USER_GENDER`/`USER_STATUS`/`ROLE_STATUS` ở `libs/constants`; không dùng `@map` cho enum.
 - **Drizzle** (products): `drizzle-orm` + `drizzle-kit`; kết nối qua token `DATABASE_CONNECTION`, schema đặt cạnh feature (`src/**/schema.ts`), migration trong `apps/products/drizzle`.
 - **Redis**: storage cho `ThrottlerProvider` (bff) và `RedisService` dùng chung.
 - **Keycloak** có trong `docker-compose.yaml` nhưng chưa được code sử dụng.

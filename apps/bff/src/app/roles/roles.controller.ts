@@ -1,3 +1,4 @@
+import { ROLE_STATUS } from '@ecosystem/constants';
 import {
   ChangeRoleStatusRequestDto,
   CreateRoleRequestDto,
@@ -49,9 +50,10 @@ export class RolesController {
   @Get()
   @ApiOperation({ summary: 'Get all roles (offset pagination)' })
   @ApiQuery({
-    name: 'includeInactive',
+    name: 'status',
     required: false,
-    enum: ['true', 'false'],
+    enum: ROLE_STATUS,
+    isArray: true,
   })
   @ApiOkResponse({ type: ResponseDto<RoleListOffsetTcpResponse> })
   findAll(@Query() query: GetRolesOffsetQueryDto) {
@@ -62,9 +64,10 @@ export class RolesController {
   @Get('cursor')
   @ApiOperation({ summary: 'Get all roles (cursor pagination)' })
   @ApiQuery({
-    name: 'includeInactive',
+    name: 'status',
     required: false,
-    enum: ['true', 'false'],
+    enum: ROLE_STATUS,
+    isArray: true,
   })
   @ApiOkResponse({ type: ResponseDto<RoleListCursorTcpResponse> })
   findAllCursor(@Query() query: GetRolesCursorQueryDto) {

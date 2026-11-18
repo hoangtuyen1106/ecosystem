@@ -89,7 +89,10 @@ export class RoleService {
     dto: ChangeRoleStatusTcpRequest,
   ): Promise<RoleResponseDto> {
     try {
-      const updated = await this.roleRepository.changeStatus(dto.id, dto.active);
+      const updated = await this.roleRepository.changeStatus(
+        dto.id,
+        dto.status,
+      );
       return this.toRoleResponse(updated);
     } catch (error) {
       mapPrismaError(error, 'Role');
@@ -105,9 +108,9 @@ export class RoleService {
       id: role.id,
       name: role.name,
       description: role.description ?? undefined,
-      active: role.active,
-      createdBy: role.createdBy ?? undefined,
-      createdByName: role.created?.firstName,
+      status: role.status,
+      authorId: role.authorId ?? undefined,
+      authorName: role.author?.firstName,
       ...(createdAt ? { createdAt } : {}),
       ...(updatedAt ? { updatedAt } : {}),
       permissions: (role.permissions ?? []) as PERMISSION[],

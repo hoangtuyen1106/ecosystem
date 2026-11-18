@@ -1,4 +1,4 @@
-import { PERMISSION } from '@ecosystem/constants';
+import { PERMISSION, ROLE_STATUS } from '@ecosystem/constants';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RoleRepository } from './repositories/role.repository';
@@ -8,12 +8,12 @@ const roleEntity = {
   id: 1,
   name: 'administrator',
   description: 'Admin',
-  active: true,
-  createdBy: null,
+  status: ROLE_STATUS.ACTIVE,
+  authorId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   permissions: [PERMISSION.ROLE_CREATE],
-  created: {
+  author: {
     id: '00000000-0000-0000-0000-000000000001',
     email: 'admin@example.com',
     firstName: 'Admin',
@@ -67,7 +67,7 @@ describe('RoleService', () => {
       permissions: [PERMISSION.ROLE_CREATE],
     });
     expect(result.permissions).toEqual([PERMISSION.ROLE_CREATE]);
-    expect(result.createdByName).toBe('Admin');
+    expect(result.authorName).toBe('Admin');
   });
 
   it('should map duplicate name (P2002) to BadRequestException', async () => {
@@ -180,23 +180,27 @@ describe('RoleService', () => {
       >,
     );
 
-    const result = await service.changeStatus({ id: 1, active: false });
+    const result = await service.changeStatus({ id: 1, status: ROLE_STATUS.INACTIVE });
 
-    expect(roleRepository.changeStatus).toHaveBeenCalledWith(1, false);
-    expect(result.active).toBe(true);
-    expect(result.createdByName).toBe('Admin');
+    expect(roleRepository.changeStatus).toHaveBeenCalledWith(
+      1,
+      ROLE_STATUS.INACTIVE,
+    );
+    expect(result.status).toBe(ROLE_STATUS.ACTIVE);
+    expect(result.authorName).toBe('Admin');
   });
 
   it('should map missing role when changing status (P2025) to NotFoundException', async () => {
     roleRepository.changeStatus.mockRejectedValue({ code: 'P2025' });
 
     await expect(
-      service.changeStatus({ id: 1, active: false }),
+      service.changeStatus({ id: 1, status: ROLE_STATUS.INACTIVE }),
     ).rejects.toThrow(NotFoundException);
   });
 
   it('should omit dates when list select does not include them (LIST_INFO)', async () => {
-    const { createdAt, updatedAt, description, permissions, created, ...rest } =
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, updatedAt, description, permissions, author, ...rest } =
       roleEntity;
     roleRepository.findAllRole.mockResolvedValue({
       items: [rest],
@@ -215,6 +219,6 @@ describe('RoleService', () => {
     expect(result.items[0].createdAt).toBeUndefined();
     expect(result.items[0].updatedAt).toBeUndefined();
     expect(result.items[0].permissions).toEqual([]);
-    expect(result.items[0].createdByName).toBeUndefined();
+    expect(result.items[0].authorName).toBeUndefined();
   });
 });
