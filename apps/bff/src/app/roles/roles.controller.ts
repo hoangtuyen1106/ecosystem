@@ -1,4 +1,5 @@
 import {
+  ChangeRoleStatusRequestDto,
   CreateRoleRequestDto,
   GetRolesCursorQueryDto,
   GetRolesOffsetQueryDto,
@@ -98,6 +99,18 @@ export class RolesController {
   @ApiOkResponse({ type: ResponseDto<string> })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.rolesService.remove(id);
+  }
+
+  @Authorization({ secured: true })
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Change role status (enable/disable)' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiOkResponse({ type: ResponseDto<RoleResponseDto> })
+  changeStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: ChangeRoleStatusRequestDto,
+  ) {
+    return this.rolesService.changeStatus(id, body);
   }
 
   @Authorization({ secured: true })

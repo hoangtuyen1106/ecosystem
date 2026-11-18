@@ -29,6 +29,7 @@ export type UserMinAggregateOutputType = {
   username: string | null
   email: string | null
   password: string | null
+  deleted: boolean | null
   keycloakId: string | null
   firstName: string | null
   lastName: string | null
@@ -46,6 +47,7 @@ export type UserMaxAggregateOutputType = {
   username: string | null
   email: string | null
   password: string | null
+  deleted: boolean | null
   keycloakId: string | null
   firstName: string | null
   lastName: string | null
@@ -63,6 +65,7 @@ export type UserCountAggregateOutputType = {
   username: number
   email: number
   password: number
+  deleted: number
   keycloakId: number
   firstName: number
   lastName: number
@@ -82,6 +85,7 @@ export type UserMinAggregateInputType = {
   username?: true
   email?: true
   password?: true
+  deleted?: true
   keycloakId?: true
   firstName?: true
   lastName?: true
@@ -99,6 +103,7 @@ export type UserMaxAggregateInputType = {
   username?: true
   email?: true
   password?: true
+  deleted?: true
   keycloakId?: true
   firstName?: true
   lastName?: true
@@ -116,6 +121,7 @@ export type UserCountAggregateInputType = {
   username?: true
   email?: true
   password?: true
+  deleted?: true
   keycloakId?: true
   firstName?: true
   lastName?: true
@@ -206,6 +212,7 @@ export type UserGroupByOutputType = {
   username: string
   email: string
   password: string
+  deleted: boolean
   keycloakId: string | null
   firstName: string
   lastName: string | null
@@ -244,6 +251,7 @@ export type UserWhereInput = {
   username?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
   password?: Prisma.StringFilter<"User"> | string
+  deleted?: Prisma.BoolFilter<"User"> | boolean
   keycloakId?: Prisma.StringNullableFilter<"User"> | string | null
   firstName?: Prisma.StringFilter<"User"> | string
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
@@ -263,6 +271,7 @@ export type UserOrderByWithRelationInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrderInput | Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -279,13 +288,14 @@ export type UserOrderByWithRelationInput = {
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  username?: string
-  email?: string
   keycloakId?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
+  username?: Prisma.StringFilter<"User"> | string
+  email?: Prisma.StringFilter<"User"> | string
   password?: Prisma.StringFilter<"User"> | string
+  deleted?: Prisma.BoolFilter<"User"> | boolean
   firstName?: Prisma.StringFilter<"User"> | string
   lastName?: Prisma.StringNullableFilter<"User"> | string | null
   avatar?: Prisma.StringNullableFilter<"User"> | string | null
@@ -297,13 +307,14 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   roles?: Prisma.UserRoleListRelationFilter
   createdRoles?: Prisma.RoleListRelationFilter
-}, "id" | "username" | "email" | "keycloakId">
+}, "id" | "keycloakId">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrderInput | Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -327,6 +338,7 @@ export type UserScalarWhereWithAggregatesInput = {
   username?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
   password?: Prisma.StringWithAggregatesFilter<"User"> | string
+  deleted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   keycloakId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   firstName?: Prisma.StringWithAggregatesFilter<"User"> | string
   lastName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -344,6 +356,7 @@ export type UserCreateInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -363,6 +376,7 @@ export type UserUncheckedCreateInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -382,6 +396,7 @@ export type UserUpdateInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -401,6 +416,7 @@ export type UserUncheckedUpdateInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -420,6 +436,7 @@ export type UserCreateManyInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -437,6 +454,7 @@ export type UserUpdateManyMutationInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -454,6 +472,7 @@ export type UserUncheckedUpdateManyInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -471,6 +490,7 @@ export type UserCountOrderByAggregateInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
@@ -488,6 +508,7 @@ export type UserMaxOrderByAggregateInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
@@ -505,6 +526,7 @@ export type UserMinOrderByAggregateInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  deleted?: Prisma.SortOrder
   keycloakId?: Prisma.SortOrder
   firstName?: Prisma.SortOrder
   lastName?: Prisma.SortOrder
@@ -529,6 +551,10 @@ export type UserScalarRelationFilter = {
 
 export type StringFieldUpdateOperationsInput = {
   set?: string
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type NullableStringFieldUpdateOperationsInput = {
@@ -582,6 +608,7 @@ export type UserCreateWithoutCreatedRolesInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -600,6 +627,7 @@ export type UserUncheckedCreateWithoutCreatedRolesInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -634,6 +662,7 @@ export type UserUpdateWithoutCreatedRolesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -652,6 +681,7 @@ export type UserUncheckedUpdateWithoutCreatedRolesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -670,6 +700,7 @@ export type UserCreateWithoutRolesInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -688,6 +719,7 @@ export type UserUncheckedCreateWithoutRolesInput = {
   username: string
   email: string
   password: string
+  deleted?: boolean
   keycloakId?: string | null
   firstName: string
   lastName?: string | null
@@ -722,6 +754,7 @@ export type UserUpdateWithoutRolesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -740,6 +773,7 @@ export type UserUncheckedUpdateWithoutRolesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  deleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   keycloakId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -798,6 +832,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   username?: boolean
   email?: boolean
   password?: boolean
+  deleted?: boolean
   keycloakId?: boolean
   firstName?: boolean
   lastName?: boolean
@@ -818,6 +853,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   username?: boolean
   email?: boolean
   password?: boolean
+  deleted?: boolean
   keycloakId?: boolean
   firstName?: boolean
   lastName?: boolean
@@ -835,6 +871,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   username?: boolean
   email?: boolean
   password?: boolean
+  deleted?: boolean
   keycloakId?: boolean
   firstName?: boolean
   lastName?: boolean
@@ -852,6 +889,7 @@ export type UserSelectScalar = {
   username?: boolean
   email?: boolean
   password?: boolean
+  deleted?: boolean
   keycloakId?: boolean
   firstName?: boolean
   lastName?: boolean
@@ -864,7 +902,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "password" | "keycloakId" | "firstName" | "lastName" | "avatar" | "phone" | "birthday" | "gender" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "password" | "deleted" | "keycloakId" | "firstName" | "lastName" | "avatar" | "phone" | "birthday" | "gender" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   roles?: boolean | Prisma.User$rolesArgs<ExtArgs>
   createdRoles?: boolean | Prisma.User$createdRolesArgs<ExtArgs>
@@ -884,6 +922,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     username: string
     email: string
     password: string
+    deleted: boolean
     keycloakId: string | null
     firstName: string
     lastName: string | null
@@ -1323,6 +1362,7 @@ export interface UserFieldRefs {
   readonly username: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly password: Prisma.FieldRef<"User", 'String'>
+  readonly deleted: Prisma.FieldRef<"User", 'Boolean'>
   readonly keycloakId: Prisma.FieldRef<"User", 'String'>
   readonly firstName: Prisma.FieldRef<"User", 'String'>
   readonly lastName: Prisma.FieldRef<"User", 'String'>

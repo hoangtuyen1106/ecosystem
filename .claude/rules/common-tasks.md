@@ -20,7 +20,9 @@ npx nx run <auth|jobs>:generate-prisma   # nếu chỉ cần regenerate client
 ```
 
 - Client generated nằm ở `apps/<service>/src/generated/prisma`, không sửa tay.
-- Migration auth hiện lệch schema (serial/3 cột so với UUID/enums); tạo migration mới trước khi tin vào DB.
+- `prisma.config.ts` đọc `DATABASE_URL` qua `env()` (không còn fallback URL giả) — phải set biến trước khi migrate.
+- Đặt tên migration rõ nghĩa: `npx nx run auth:migrate-prisma --name=<mo_ta>`; migration được tạo trong `apps/auth/prisma/migrations/<timestamp>_<name>/`.
+- Migration auth gần nhất: `20261118025045_user_deleted_and_varchar_no_unique` (bỏ unique email/username, thêm `deleted`) và `20261118053136_userrole_fk_on_update_restrict` (FK `user_roles` `ON UPDATE RESTRICT`, index `role_id`). DB local đã apply.
 
 ### Drizzle (products)
 
@@ -31,6 +33,21 @@ npx nx run products:migrate-drizzle      # áp dụng migration
 ```
 
 - Kiểm tra SQL sinh ra trước khi migrate; seed categories nằm trong `drizzle/0002_seed-categories.sql`.
+
+## Thay đổi feature Role (auth TCP + bff REST)
+
+1. Thêm message vào enum `ROLE` — `libs/constants/src/lib/enum/tcp-request-message.enum.ts`; nếu thêm quyền mới thì bổ sung `PERMISSION` trong `libs/constants/src/lib/enum/role.enum.ts`.
+2. Thêm DTO/interface: `libs/interfaces/src/lib/gateway/role/role.request.dto.ts`, `libs/interfaces/src/lib/tcp/role/role.request.interface.ts` (và response nếu hình dạng trả về đổi).
+3. auth: `role.repository.ts` → `role.service.ts` → `@MessagePattern` trong `role.controller.ts`.
+4. bff: `roles.service.ts` (gửi TCP + `formatResponseDates`) → `roles.controller.ts` (`@Authorization({ secured: true })`, `ParseIntPipe`, Swagger).
+5. Test: `npx nx test auth`; viết thêm spec bff trong `roles.service.spec.ts`.
+6. Kiểm tra: `npx nx affected -t lint test build`.
+
+Quy ước hiện tại:
+
+- `update` chỉ cho sửa `name`, `description`, `permissions`; đổi trạng thái phải qua `role.change_status` / `PATCH /roles/:id/status`.
+- `remove` là hard delete, xoá `user_roles` liên quan trong cùng transaction.
+- TCP controller **không** chạy `class-validator`; validation nằm ở DTO bff, service check tồn tại/trùng tên.
 
 ## Sửa gRPC contract
 

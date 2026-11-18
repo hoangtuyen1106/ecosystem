@@ -77,6 +77,7 @@ export const UserScalarFieldEnum = {
   username: 'username',
   email: 'email',
   password: 'password',
+  deleted: 'deleted',
   keycloakId: 'keycloakId',
   firstName: 'firstName',
   lastName: 'lastName',

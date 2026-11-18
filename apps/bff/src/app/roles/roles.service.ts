@@ -1,5 +1,7 @@
 import { TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
 import {
+  ChangeRoleStatusRequestDto,
+  ChangeRoleStatusTcpRequest,
   CreateRoleRequestDto,
   CreateRoleTcpRequest,
   formatResponseDates,
@@ -81,6 +83,17 @@ export class RolesService {
   remove(id: number) {
     return this.authClient
       .send<string, number>(TCP_REQUEST_MESSAGE.ROLE.DELETE, id)
+      .pipe(
+        map((data) => new ResponseDto({ data: formatResponseDates(data) })),
+      );
+  }
+
+  changeStatus(id: number, body: ChangeRoleStatusRequestDto) {
+    return this.authClient
+      .send<RoleTcpResponse, ChangeRoleStatusTcpRequest>(
+        TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS,
+        { id, active: body.active },
+      )
       .pipe(
         map((data) => new ResponseDto({ data: formatResponseDates(data) })),
       );

@@ -16,13 +16,13 @@ Workspace **Ecosystem**: Nx 23.0.1 + npm workspaces, NestJS 11, Node 22. Giao ti
 
 ## Ứng dụng
 
-| App        | HTTP local                                 | API                                                                | gRPC local                                                  | Dữ liệu                     | Vai trò                                    |
-| ---------- | ------------------------------------------ | ------------------------------------------------------------------ | ----------------------------------------------------------- | --------------------------- | ------------------------------------------ |
-| `auth`     | 3000 (prefix `auth`)                       | Không có route HTTP đang hoạt động; resolver login chưa được mount | `AuthService.Authenticate` — 5000                           | Prisma/Postgres `auth`      | Đăng nhập, JWT cookie, quản lý user        |
-| `jobs`     | 3001 (prefix `jobs`)                       | GraphQL `/jobs`; `POST /jobs/uploads/upload`                       | `JobsService.Acknowledge` — 5002                            | Prisma/Postgres `jobs`      | Nhận lệnh job, upload JSON, publish Pulsar |
-| `executor` | Không HTTP API hữu dụng (PORT theo `.env`) | Không GraphQL                                                      | Client tới jobs/products                                    | Không DB                    | Consumer Pulsar, thực thi job              |
-| `products` | 3003 local / 3002 compose (prefix `api`)   | Không có controller HTTP                                           | `ProductsService.CreateProduct` — 5001 local / 5002 compose | Drizzle/Postgres `products` | Tạo/lưu sản phẩm                           |
-| `bff`      | 3004 (prefix `bff`)                        | `GET /bff/health`; Swagger `/doc`                                  | Code gRPC đang comment                                      | Không DB                    | API gateway REST, health check, throttler  |
+| App        | HTTP local                               | API                                                                                                                           | gRPC local                                                    | Dữ liệu                     | Vai trò                                    |
+| ---------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------- | ------------------------------------------ |
+| `auth`     | 3001 (prefix `auth`)                     | TCP `role.*` (port 3103); không có route HTTP đang hoạt động; resolver login chưa được mount                                  | `AuthService.Authenticate` — 5000; client `AuthorizerService` | Prisma/Postgres `auth`      | Đăng nhập, JWT cookie, users, RBAC role    |
+| `jobs`     | 3004 (prefix `jobs`)                     | GraphQL `/jobs`; `POST /jobs/uploads/upload`                                                                                  | `JobsService.Acknowledge` — 5002                              | Prisma/Postgres `jobs`      | Nhận lệnh job, upload JSON, publish Pulsar |
+| `executor` | 3002 (không HTTP API hữu dụng)           | Không GraphQL                                                                                                                 | Client tới jobs/products                                      | Không DB                    | Consumer Pulsar, thực thi job              |
+| `products` | 3003 local / 3002 compose (prefix `api`) | Không có controller HTTP                                                                                                      | `ProductsService.CreateProduct` — 5001 local / 5002 compose   | Drizzle/Postgres `products` | Tạo/lưu sản phẩm                           |
+| `bff`      | 3000 (prefix `api/v1`)                   | `POST/GET/PATCH/DELETE /roles`, `PATCH /roles/:id/status`, `PUT /roles/:id/permissions`; health `/bff/health`; Swagger `/doc` | Client gRPC auth (`AuthorizerService.VerifyUserToken`)        | Không DB                    | API gateway REST, auth guard, throttler    |
 
 Cột port ở trên là canonical. Local lấy từ `apps/*/.env`, container lấy từ `docker-compose.apps.yaml`; xem [`environment-setup.md`](environment-setup.md) khi cần bảng đối chiếu.
 
@@ -48,6 +48,15 @@ Import qua alias `@ecosystem/*` (xem `tsconfig.base.json`). `main.ts` phải b�
 - `auth` có `AuthResolver` nhưng `apps/auth/src/app/app.module.ts` **chưa import `GraphQLModule`**, nên chưa có endpoint GraphQL.
 - `products` và `executor` không dùng GraphQL.
 
+### RBAC (auth ↔ bff qua TCP)
+
+- **auth** xử lý nghiệp vụ role: `RoleController` (`@MessagePattern`) → `RoleService` → `RoleRepository` (Prisma). Không có HTTP route.
+- **bff** expose REST `/api/v1/roles`; `RolesService` gửi TCP message (`TCP_REQUEST_MESSAGE.ROLE.*`) tới `TCP_SERVICES.AUTH_SERVICE` (port `TCP_AUTH_PORT` 3103 khi chạy local).
+- Message hiện có: `role.create`, `role.get_all` (offset), `role.get_all_cursor`, `role.get_by_id`, `role.update`, `role.delete`, `role.change_status`, `role.set_permissions`.
+- Phân quyền lưu ở `Role.permissions String[]` theo enum `PERMISSION` — **không có bảng Permission riêng**.
+- `UserRole` là bảng nối user ↔ role; FK `ON DELETE RESTRICT`, `ON UPDATE RESTRICT`; chưa có API gán role cho user.
+- Auth guard ở bff: `UserGuard` đăng ký `APP_GUARD`, đọc decorator `@Authorization({ secured })`; route `secured` gọi gRPC `AuthorizerService.VerifyUserToken`.
+
 ### gRPC
 
 - Proto đặt tại `libs/grpc/src/lib/proto/*.proto`; types TS sinh bằng `nx run grpc:generate-ts-proto` và được commit.
@@ -71,6 +80,7 @@ Import qua alias `@ecosystem/*` (xem `tsconfig.base.json`). `main.ts` phải b�
 ## Dữ liệu
 
 - **Prisma 7** (auth, jobs): generator `prisma-client`, output `apps/*/src/generated/prisma`, `moduleFormat = "cjs"`; runtime dùng `PrismaPg` + `pg.Pool` từ `DATABASE_URL`. Không sửa tay thư mục generated. Mỗi service có migration riêng.
+  - Model RBAC trong `apps/auth`: `User` (UUID; `email`/`username` không còn unique, có `deleted`), `Role` (`id Int`, `name @unique`, `permissions String[]`, `createdBy` → `User` SetNull), `UserRole` (composite PK `[userId, roleId]`, FK `RESTRICT` cả delete/update, index `role_id`).
 - **Drizzle** (products): `drizzle-orm` + `drizzle-kit`; kết nối qua token `DATABASE_CONNECTION`, schema đặt cạnh feature (`src/**/schema.ts`), migration trong `apps/products/drizzle`.
 - **Redis**: storage cho `ThrottlerProvider` (bff) và `RedisService` dùng chung.
 - **Keycloak** có trong `docker-compose.yaml` nhưng chưa được code sử dụng.

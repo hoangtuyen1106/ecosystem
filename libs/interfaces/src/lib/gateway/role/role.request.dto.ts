@@ -10,6 +10,7 @@ import {
   ArrayUnique,
   IsArray,
   IsBoolean,
+  IsDefined,
   IsIn,
   IsNotEmpty,
   IsOptional,
@@ -63,6 +64,13 @@ export class UpdateRoleRequestDto {
   permissions?: PERMISSION[];
 }
 
+export class ChangeRoleStatusRequestDto {
+  @ApiProperty({ example: false })
+  @IsDefined({ message: 'active là bắt buộc' })
+  @IsBoolean()
+  active: boolean;
+}
+
 export class SetRolePermissionsRequestDto {
   @ApiProperty({ enum: PERMISSION_VALUES, isArray: true })
   @IsArray()
@@ -88,17 +96,11 @@ export class GetRolesQueryDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: string = 'createdAt';
+  sortBy?: string = 'id';
 
   @IsOptional()
   @IsString()
-  sortOrder?: 'ASC' | 'DESC' = 'DESC';
-
-  // Join bảng liên quan
-  @IsOptional()
-  @Transform(toBoolean)
-  @IsBoolean()
-  getUser?: boolean;
+  sortOrder?: 'ASC' | 'DESC' = 'ASC';
 }
 
 export class GetRolesOffsetQueryDto extends IntersectionType(

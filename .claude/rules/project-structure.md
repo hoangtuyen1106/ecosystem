@@ -18,16 +18,23 @@ paths:
 ```text
 ecosystem/
 ├── apps/
-│   ├── auth/                  # Xác thực, users (Prisma + gRPC + JWT)
+│   ├── auth/                  # Xác thực, users, RBAC role (Prisma + TCP + gRPC)
 │   │   ├── src/app/
 │   │   │   ├── auth/          # resolver, service, controller, guards, strategies
 │   │   │   ├── users/         # service, repositories, dto
-│   │   │   └── prisma/        # PrismaService (PrismaPg adapter)
+│   │   │   ├── role/          # role.controller (TCP), service, repositories/, mappers/
+│   │   │   ├── keycloak/      # tích hợp Keycloak
+│   │   │   └── prisma/        # PrismaService (PrismaPg adapter), prisma-error.util.ts
 │   │   ├── prisma/            # schema.prisma + migrations
 │   │   ├── prisma.config.ts
 │   │   └── src/generated/prisma/   # generated, không sửa tay
-│   ├── bff/                   # REST gateway (Swagger, health, throttler)
-│   │   └── src/app/health/
+│   ├── bff/                   # REST gateway (Swagger, health, throttler, auth)
+│   │   └── src/app/
+│   │       ├── health/
+│   │       ├── users/         # REST users qua TCP
+│   │       ├── roles/         # REST roles qua TCP
+│   │       ├── auth/          # login/authorizer
+│   │       └── common/        # guards/user.guard.ts, decorators/authorizer.decotator.ts
 │   ├── executor/              # Pulsar consumers
 │   │   └── src/app/jobs/{fibonacci,products}/
 │   ├── jobs/                  # GraphQL + gRPC + upload + Pulsar producer
@@ -76,7 +83,8 @@ ecosystem/
 
 - Mỗi feature một module; resolver/controller/service/dto/model nằm cùng thư mục feature.
 - GraphQL model/input chỉ ở jobs; model dùng chung đặt trong `libs/graphql` (`AbstractModel`).
-- Repository pattern dùng ở auth (`apps/auth/src/app/users/repositories`).
+- Repository pattern dùng ở auth (`apps/auth/src/app/users/repositories`, `apps/auth/src/app/role/repositories`).
+- Feature RBAC: auth chạy TCP (`*.controller.ts` dùng `@MessagePattern`), bff expose REST và map DTO ↔ TCP interface trong `libs/interfaces`.
 - products inject `DATABASE_CONNECTION`; không tạo Prisma client cho products.
 - Không sửa `src/generated/prisma`; sinh lại bằng target `generate-prisma`.
 - Không import chéo giữa các app; giao tiếp qua gRPC hoặc Pulsar. Code dùng chung đặt trong `libs/`.

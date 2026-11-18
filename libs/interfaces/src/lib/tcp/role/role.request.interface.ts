@@ -19,6 +19,11 @@ export type GetRolesTcpRequest = GetRolesQueryDto;
 
 export type DeleteRoleTcpRequest = number;
 
+export type ChangeRoleStatusTcpRequest = {
+  id: number;
+  active: boolean;
+};
+
 export type SetRolePermissionsTcpRequest = {
   roleId: number;
   permissions: PERMISSION[];

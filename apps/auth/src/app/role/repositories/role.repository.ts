@@ -12,7 +12,11 @@ import {
   GetRolesQueryDto,
   UpdateRoleData,
 } from '@ecosystem/interfaces';
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -54,19 +58,48 @@ export class RoleRepository {
     };
   }
 
+  async findAllCursor(query: GetRolesCursorTcpRequest) {
+    const { cursor, take = 10 } = query;
+
+    const { where, orderBy, select } = this.buildQuery(query);
+
+    const items = await this.prismaService.role.findMany({
+      where,
+      take: take + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy,
+      select,
+    });
+
+    const hasNextPage = items.length > take;
+    if (hasNextPage) {
+      items.pop(); // Loại bỏ phần tử dư thừa sau khi đã xác nhận còn trang tiếp
+    }
+
+    const nextCursor = items.length > 0 ? items[items.length - 1].id : null;
+
+    return {
+      items,
+      meta: {
+        take,
+        hasNextPage,
+        nextCursor,
+      },
+    };
+  }
+
   // Dựng phần query dùng chung cho cả phân trang offset và cursor
   private buildQuery(query: GetRolesQueryDto) {
     const {
       sortBy = 'id',
       sortOrder = 'ASC',
-      getUser = true,
       field = SIMPLE_INFO,
     } = query;
 
     return {
       where: this.buildWhere(query),
       orderBy: this.buildOrderBy(sortBy, sortOrder),
-      select: this.buildSelect(field, getUser),
+      select: this.buildSelect(field),
     };
   }
 
@@ -112,114 +145,143 @@ export class RoleRepository {
   }
 
   // ========== SELECT (chọn trường dữ liệu) ==========
-  private buildSelect(field: INFO_TYPE, getUser?: boolean): Prisma.RoleSelect {
+  private buildSelect(field: INFO_TYPE): Prisma.RoleSelect {
+    // Các field tối thiểu RoleResponseDto cần. Thiếu createdAt/updatedAt thì
+    // toRoleResponse crash ở .toISOString(), thiếu permissions thì trả undefined.
+    const BASE_SELECT: Prisma.RoleSelect = {
+      id: true,
+      name: true,
+      description: true,
+      active: true,
+      permissions: true,
+      createdAt: true,
+      updatedAt: true,
+    };
+
+    // LIST_INFO chỉ trả các thông tin cơ bản để hiển thị danh sách.
+    // createdBy đi kèm để toRoleResponse có thể lấy tên người tạo.
     const ROLE_SELECT_BY_INFO: Record<INFO_TYPE, Prisma.RoleSelect> = {
       [FULL_INFO]: {
-        id: true,
-        name: true,
-        description: true,
-        active: true,
-        createdAt: true,
-        updatedAt: true,
+        ...BASE_SELECT,
         createdBy: true,
       },
       [LIST_INFO]: {
         id: true,
         name: true,
+        active: true,
+        createdBy: true,
       },
       [SIMPLE_INFO]: {
-        id: true,
-        name: true,
-        description: true,
-        active: true,
-        updatedAt: true,
+        ...BASE_SELECT,
         createdBy: true,
       },
     };
-    const roleSelect: Prisma.RoleSelect = {
-      ...(ROLE_SELECT_BY_INFO[field] ?? ROLE_SELECT_BY_INFO[SIMPLE_INFO]),
-    };
-    if (getUser) {
-      roleSelect.created = {
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-        },
-      };
-    }
-
-    return roleSelect;
-  }
-
-  create(data: CreateRoleTcpRequest) {
-    const { permissions = [], ...roleData } = data;
-
-    return this.prismaService.role.create({
-      data: { ...roleData, permissions },
-    });
-  }
-
-  async findAllCursor(query: GetRolesCursorTcpRequest) {
-    const { cursor, take = 10 } = query;
-
-    const { where, orderBy, select } = this.buildQuery(query);
-
-    // Kỹ thuật Peek Ahead: Lấy dư 1 phần tử (take + 1) để xác định hasNextPage mà không cần gọi count()
-    const items = await this.prismaService.role.findMany({
-      where,
-      take: take + 1,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-      orderBy,
-      select,
-    });
-
-    const hasNextPage = items.length > take;
-    if (hasNextPage) {
-      items.pop(); // Loại bỏ phần tử dư thừa sau khi đã xác nhận còn trang tiếp
-    }
-
-    const nextCursor = items.length > 0 ? items[items.length - 1].id : null;
 
     return {
-      items,
-      meta: {
-        take,
-        hasNextPage,
-        nextCursor,
+      ...(ROLE_SELECT_BY_INFO[field] ?? ROLE_SELECT_BY_INFO[SIMPLE_INFO]),
+    };
+  }
+
+  private getCreatedByRelation() {
+    return {
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
       },
     };
   }
 
-  findById(id: number, isActive = false) {
-    return this.prismaService.role.findFirst({
-      where: { id, ...(isActive ? {} : { active: true }) },
+  async findOne(id: number) {
+    const role = await this.prismaService.role.findUnique({
+      where: { id },
+      include: { created: this.getCreatedByRelation() },
     });
+
+    if (!role) {
+      throw new NotFoundException('Không tìm thấy role');
+    }
+
+    return role;
   }
 
-  update(id: number, data: UpdateRoleData) {
+  async update(id: number, data: UpdateRoleData) {
+    await this.findOne(id);
+
+    // Chỉ pick các field được phép sửa. `active` cố tình bị loại bỏ —
+    // đổi trạng thái phải đi qua changeStatus để có một đường duy nhất.
+    const { name, description, permissions } = data;
+
     return this.prismaService.role.update({
       where: { id },
-      data,
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(description !== undefined ? { description } : {}),
+        // PATCH permissions thay thế toàn bộ danh sách (giống setPermissions)
+        ...(permissions !== undefined ? { permissions } : {}),
+      },
+      include: { created: this.getCreatedByRelation() },
     });
   }
 
-  setPermissions(roleId: number, permissions: PERMISSION[]) {
+  // Hard delete — dùng khi thật sự muốn xoá bản ghi khỏi DB.
+  // user_roles có FK ON DELETE RESTRICT nên phải xoá các bản ghi liên kết trước.
+  async remove(id: number) {
+    await this.findOne(id);
+
+    return this.prismaService.$transaction(async (tx) => {
+      await tx.userRole.deleteMany({ where: { roleId: id } });
+      await tx.role.delete({ where: { id } });
+      return id;
+    });
+  }
+
+  async create(data: CreateRoleTcpRequest) {
+    const { permissions = [], ...roleData } = data;
+
+    if (await this.existsByName(roleData.name)) {
+      throw new BadRequestException(`Tên role "${roleData.name}" đã tồn tại`);
+    }
+
+    const userId = '00000000-0000-0000-0000-000000000001';
+
+    return this.prismaService.role.create({
+      data: {
+        ...roleData,
+        permissions,
+        createdBy: userId,
+      },
+      include: { created: this.getCreatedByRelation() },
+    });
+  }
+
+  async setPermissions(id: number, permissions: PERMISSION[]) {
+    await this.findOne(id);
     return this.prismaService.role.update({
-      where: { id: roleId },
+      where: { id },
       data: { permissions },
+      include: { created: this.getCreatedByRelation() },
     });
   }
 
-  softDelete(id: number) {
+  // Bật/tắt trạng thái hoạt động (thay cho delete mềm)
+  async changeStatus(id: number, active: boolean) {
+    await this.findOne(id);
     return this.prismaService.role.update({
       where: { id },
-      data: { active: false },
+      data: { active },
+      include: { created: this.getCreatedByRelation() },
     });
+  }
+
+  async existsByName(name: string): Promise<boolean> {
+    const count = await this.prismaService.role.count({
+      where: { name },
+    });
+    return count > 0;
   }
 }
 
-export type RoleEntity = NonNullable<
-  Awaited<ReturnType<RoleRepository['findById']>>
->;
+// Mọi query của repository đều include relation `created` (xem getCreatedByRelation)
+export type RoleEntity = Awaited<ReturnType<RoleRepository['findOne']>>;

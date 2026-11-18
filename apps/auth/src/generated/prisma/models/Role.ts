@@ -484,10 +484,6 @@ export type RoleCreatepermissionsInput = {
   set: string[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type RoleUpdatepermissionsInput = {
   set?: string[]
   push?: string | string[]

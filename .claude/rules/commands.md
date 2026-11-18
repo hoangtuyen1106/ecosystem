@@ -5,13 +5,13 @@ Chạy Nx qua npm để dùng đúng version trong workspace: `npx nx ...`.
 ## Khởi động
 
 ```bash
-# Chạy 5 app song song: auth 3000, jobs 3001, executor 3002, products 3003, bff 3004
+# Chạy 5 app song song theo .env: bff 3000, auth 3001, executor 3002, products 3003, jobs 3004
 npm start
 
-# Dừng service (chỉ kill 3000-3003)
+# Dừng service (script chỉ kill 3000-3003: bff/auth/executor/products)
 npm stop
 
-# bff không nằm trong npm stop
+# jobs (3004) không nằm trong npm stop
 lsof -ti :3004 | xargs kill -9
 
 # Infra: postgres 5432, pulsar 6650, redis 6379, keycloak 8180
@@ -50,7 +50,8 @@ npx prettier --write .
 ```bash
 # Prisma - auth/jobs (migrate dev cho local)
 npx nx run auth:generate-prisma
-npx nx run auth:migrate-prisma
+npx nx run auth:migrate-prisma                      # migrate dev, hỏi tên migration
+npx nx run auth:migrate-prisma --name=<mo_ta>       # đặt tên migration rõ nghĩa
 npx nx run jobs:generate-prisma
 npx nx run jobs:migrate-prisma
 

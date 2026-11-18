@@ -54,11 +54,11 @@ describe('RolesService - BFF', () => {
   });
 
   it('should send get all message', async () => {
-    await firstValueFrom(service.findAll({ includeInactive: 'true' }));
+    await firstValueFrom(service.findAll({ isActive: true }));
 
     expect(authClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.GET_ALL,
-      { includeInactive: 'true' },
+      { isActive: true },
     );
   });
 
@@ -136,6 +136,15 @@ describe('RolesService - BFF', () => {
     expect(authClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.DELETE,
       1,
+    );
+  });
+
+  it('should send change status message', async () => {
+    await firstValueFrom(service.changeStatus(1, { active: false }));
+
+    expect(authClient.send).toHaveBeenCalledWith(
+      TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS,
+      { id: 1, active: false },
     );
   });
 

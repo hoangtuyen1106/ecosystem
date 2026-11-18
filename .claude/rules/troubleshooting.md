@@ -2,23 +2,32 @@
 
 ## Known issues (đã xác minh trong code)
 
-| Hiện tượng                            | Trạng thái                                                                                   | Xử lý tạm                                                               |
-| ------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| auth không có endpoint GraphQL        | `AuthResolver` tồn tại nhưng `app.module.ts` chưa import `GraphQLModule`                     | Thêm `GraphQLModule` hoặc dùng gRPC `Authenticate`                      |
-| Migration auth lệch schema            | Migration tạo `User(id serial, email, password)`; schema dùng UUID + enums, `@@map("users")` | Tạo migration mới trước khi dùng DB                                     |
-| `npm stop` không dừng bff             | Script chỉ kill port 3000–3003                                                               | `lsof -ti :3004 \| xargs kill -9`                                       |
-| bff không có trong Docker             | Thiếu service trong `docker-compose.apps.yaml` dù có Dockerfile                              | Chạy local bằng `nx serve bff`                                          |
-| Port lệch local ↔ compose            | jobs gRPC 5002/5001; products HTTP 3003/3002, gRPC 5001/5002                                 | Luôn đọc `apps/*/.env` hoặc compose, không hardcode                     |
-| `docker:infra` không tạo DB nghiệp vụ | Compose infra không mount `docker/init-db.sql`                                               | `docker compose exec -T postgres psql -U postgres < docker/init-db.sql` |
-| `scripts/fibonacci.mjs` dùng URL cũ   | Gọi `/graphql`; jobs GraphQL thực tế ở `/jobs`, auth chưa mount GraphQL                      | Sửa URL trước khi dùng làm smoke test                                   |
-| `UsersModule` thiếu provider          | `UsersService` inject `UserRepository` nhưng module không khai báo provider                  | Thêm `UserRepository` vào `providers`/`exports`                         |
+| Hiện tượng                                        | Trạng thái                                                                                       | Xử lý tạm                                                                       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| auth không có endpoint GraphQL                    | `AuthResolver` tồn tại nhưng `app.module.ts` chưa import `GraphQLModule`                         | Thêm `GraphQLModule` hoặc dùng gRPC `Authenticate`                              |
+| `bff:test` fail "unexpected token"                | Jest không transform `node_modules/uuid` (ESM `export`) — lỗi hạ tầng có từ trước, không do role | Cấu hình `transformIgnorePatterns`/`transform` cho `uuid` trong jest config bff |
+| `createdBy` của role luôn là UUID giả             | `role.repository.create()` hardcode `00000000-0000-0000-0000-000000000001`                       | Cần truyền user id thật từ request context qua TCP                              |
+| `PATCH /roles/:id` gửi `active` không có tác dụng | DTO/`UpdateRoleData` đã bỏ `active` (by design)                                                  | Dùng `PATCH /roles/:id/status`                                                  |
+| Swagger bff hiển thị `includeInactive`            | Controller còn `@ApiQuery` cũ, DTO thực tế dùng `isActive`                                       | Sửa decorator Swagger cho khớp DTO                                              |
+| Xoá role bị lỗi FK `user_roles`                   | FK `user_roles.role_id` là `ON DELETE RESTRICT`                                                  | Repository đã `deleteMany` `user_roles` trong transaction trước khi xoá role    |
+| bff trả 200 dù không gửi token                    | Kiểm tra route có `@Authorization({ secured: true })` và `UserGuard` là `APP_GUARD`              | `UserGuard` đã đăng ký trong `apps/bff/src/app/app.module.ts`                   |
+| `npm stop` không dừng jobs                        | Script chỉ kill port 3000–3003 (bff/auth/executor/products); jobs ở 3004                         | `lsof -ti :3004 \| xargs kill -9`                                               |
+| bff không có trong Docker                         | Thiếu service trong `docker-compose.apps.yaml` dù có Dockerfile                                  | Chạy local bằng `nx serve bff`                                                  |
+| Port lệch local ↔ compose                        | jobs HTTP 3004 (compose 3001), gRPC 5002/5001; products HTTP 3003/3002, gRPC 5001/5002           | Luôn đọc `apps/*/.env` hoặc compose, không hardcode                             |
+| `docker:infra` không tạo DB nghiệp vụ             | Compose infra không mount `docker/init-db.sql`                                                   | `docker compose exec -T postgres psql -U postgres < docker/init-db.sql`         |
+| `scripts/fibonacci.mjs` dùng URL cũ               | Gọi `/graphql`; jobs GraphQL thực tế ở `/jobs`, auth chưa mount GraphQL                          | Sửa URL trước khi dùng làm smoke test                                           |
 
 ## Prisma (auth, jobs)
 
 - Lỗi missing generated types → `npx nx run <service>:generate-prisma`.
 - `DATABASE_URL` sai/thiếu → kiểm tra `apps/<service>/.env`; Prisma 7 dùng `PrismaPg` + `pg.Pool`.
+- `prisma.config.ts` (auth) dùng `env('DATABASE_URL')` — không còn fallback; migrate sẽ fail nếu thiếu biến.
 - DB chưa tồn tại → tạo bằng `docker/init-db.sql` hoặc `docker compose exec postgres psql -U postgres -c 'CREATE DATABASE auth;'`.
-- Migration drift → xem known issues; chạy `npx nx run <service>:migrate-prisma` để sinh migration mới.
+- Migration drift → chạy `npx nx run <service>:migrate-prisma --name=<mo_ta>` để sinh migration mới.
+- Auth schema đã đồng bộ tới `20261118053136_userrole_fk_on_update_restrict`; nếu DB cũ lệch (serial/thiếu `deleted`, thiếu `permissions String[]`) thì tạo lại DB hoặc chạy migrate deploy từ đầu.
+- Lỗi `P2002` dù đã kiểm tra trùng tên → race giữa `existsByName` và insert; DB unique vẫn là chốt chặn, service map thành 400.
+- Xoá role còn `user_roles` → repository đã xử lý transaction; nếu gọi Prisma trực tiếp phải tự `userRole.deleteMany` trước (FK RESTRICT).
+- `email`/`username` không còn unique → dùng `findFirst`, không dùng `findUnique({ where: { email } })`.
 
 ## Drizzle (products)
 
@@ -37,7 +46,7 @@
 
 ## GraphQL / auth
 
-- jobs GraphQL ở `http://localhost:3001/jobs`, không phải `/graphql`.
+- jobs GraphQL ở `http://localhost:3004/jobs`, không phải `/graphql`.
 - Guard trả `false` → thiếu cookie `Authentication` hoặc auth service/gRPC không truy cập được.
 - auth không có endpoint GraphQL → xem known issues.
 
@@ -55,7 +64,7 @@ lsof -ti :<port>
 lsof -ti :<port> | xargs kill -9
 ```
 
-Kiểm tra cả port HTTP và gRPC; bff 3004 không nằm trong `npm stop`.
+Kiểm tra cả port HTTP và gRPC; jobs 3004 không nằm trong `npm stop`.
 
 ## Module alias
 

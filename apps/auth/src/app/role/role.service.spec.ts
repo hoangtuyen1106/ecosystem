@@ -4,16 +4,21 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RoleRepository } from './repositories/role.repository';
 import { RoleService } from './role.service';
 
-type RoleEntity = NonNullable<Awaited<ReturnType<RoleRepository['findById']>>>;
-
 const roleEntity = {
   id: 1,
   name: 'administrator',
   description: 'Admin',
   active: true,
+  createdBy: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   permissions: [PERMISSION.ROLE_CREATE],
+  created: {
+    id: '00000000-0000-0000-0000-000000000001',
+    email: 'admin@example.com',
+    firstName: 'Admin',
+    lastName: null,
+  },
 };
 
 describe('RoleService', () => {
@@ -23,11 +28,14 @@ describe('RoleService', () => {
   beforeEach(async () => {
     roleRepository = {
       create: jest.fn(),
-      findAll: jest.fn(),
-      findById: jest.fn(),
+      findAllRole: jest.fn(),
+      findAllCursor: jest.fn(),
+      findOne: jest.fn(),
       update: jest.fn(),
+      remove: jest.fn(),
       setPermissions: jest.fn(),
-      softDelete: jest.fn(),
+      changeStatus: jest.fn(),
+      existsByName: jest.fn(),
     } as unknown as jest.Mocked<RoleRepository>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -45,7 +53,9 @@ describe('RoleService', () => {
   });
 
   it('should create a role with permissions', async () => {
-    roleRepository.create.mockResolvedValue(roleEntity as RoleEntity);
+    roleRepository.create.mockResolvedValue(
+      roleEntity as unknown as Awaited<ReturnType<RoleRepository['create']>>,
+    );
 
     const result = await service.create({
       name: 'administrator',
@@ -57,6 +67,7 @@ describe('RoleService', () => {
       permissions: [PERMISSION.ROLE_CREATE],
     });
     expect(result.permissions).toEqual([PERMISSION.ROLE_CREATE]);
+    expect(result.createdByName).toBe('Admin');
   });
 
   it('should map duplicate name (P2002) to BadRequestException', async () => {
@@ -67,14 +78,28 @@ describe('RoleService', () => {
     );
   });
 
+  it('should pass through BadRequestException for duplicate name', async () => {
+    roleRepository.create.mockRejectedValue(
+      new BadRequestException('Tên role "administrator" đã tồn tại'),
+    );
+
+    await expect(service.create({ name: 'administrator' })).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
   it('should throw NotFoundException when role does not exist', async () => {
-    roleRepository.findById.mockResolvedValue(null);
+    roleRepository.findOne.mockRejectedValue(
+      new NotFoundException('Không tìm thấy role'),
+    );
 
     await expect(service.findOne(1)).rejects.toThrow(NotFoundException);
   });
 
   it('should update a role and replace permissions', async () => {
-    roleRepository.update.mockResolvedValue(roleEntity as RoleEntity);
+    roleRepository.update.mockResolvedValue(
+      roleEntity as unknown as Awaited<ReturnType<RoleRepository['update']>>,
+    );
 
     const result = await service.update({
       id: 1,
@@ -89,23 +114,42 @@ describe('RoleService', () => {
     expect(result.id).toBe(1);
   });
 
-  it('should soft delete a role', async () => {
-    roleRepository.softDelete.mockResolvedValue(roleEntity as RoleEntity);
+  it('should remove a role', async () => {
+    roleRepository.remove.mockResolvedValue(1);
 
     await service.remove(1);
 
-    expect(roleRepository.softDelete).toHaveBeenCalledWith(1);
+    expect(roleRepository.remove).toHaveBeenCalledWith(1);
+  });
+
+  it('should not pass active to repository update', async () => {
+    roleRepository.update.mockResolvedValue(
+      roleEntity as unknown as Awaited<ReturnType<RoleRepository['update']>>,
+    );
+
+    await service.update({ id: 1, name: 'administrator', description: 'X' });
+
+    expect(roleRepository.update).toHaveBeenCalledWith(1, {
+      name: 'administrator',
+      description: 'X',
+    });
   });
 
   it('should map missing role on delete (P2025) to NotFoundException', async () => {
-    roleRepository.softDelete.mockRejectedValue({ code: 'P2025' });
+    roleRepository.remove.mockRejectedValue({ code: 'P2025' });
 
     await expect(service.remove(1)).rejects.toThrow(NotFoundException);
   });
 
   it('should set permissions for a role', async () => {
-    roleRepository.findById.mockResolvedValue(roleEntity as RoleEntity);
-    roleRepository.setPermissions.mockResolvedValue(roleEntity as RoleEntity);
+    roleRepository.findOne.mockResolvedValue(
+      roleEntity as Awaited<ReturnType<RoleRepository['findOne']>>,
+    );
+    roleRepository.setPermissions.mockResolvedValue(
+      roleEntity as unknown as Awaited<
+        ReturnType<RoleRepository['setPermissions']>
+      >,
+    );
 
     const result = await service.setPermissions({
       roleId: 1,
@@ -119,11 +163,58 @@ describe('RoleService', () => {
   });
 
   it('should throw NotFoundException when setting permissions on missing role', async () => {
-    roleRepository.findById.mockResolvedValue(null);
+    // Repository.setPermissions tự gọi findOne và ném NotFoundException
+    roleRepository.setPermissions.mockRejectedValue(
+      new NotFoundException('Không tìm thấy role'),
+    );
 
     await expect(
       service.setPermissions({ roleId: 1, permissions: [] }),
     ).rejects.toThrow(NotFoundException);
-    expect(roleRepository.setPermissions).not.toHaveBeenCalled();
+  });
+
+  it('should change role status', async () => {
+    roleRepository.changeStatus.mockResolvedValue(
+      roleEntity as unknown as Awaited<
+        ReturnType<RoleRepository['changeStatus']>
+      >,
+    );
+
+    const result = await service.changeStatus({ id: 1, active: false });
+
+    expect(roleRepository.changeStatus).toHaveBeenCalledWith(1, false);
+    expect(result.active).toBe(true);
+    expect(result.createdByName).toBe('Admin');
+  });
+
+  it('should map missing role when changing status (P2025) to NotFoundException', async () => {
+    roleRepository.changeStatus.mockRejectedValue({ code: 'P2025' });
+
+    await expect(
+      service.changeStatus({ id: 1, active: false }),
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('should omit dates when list select does not include them (LIST_INFO)', async () => {
+    const { createdAt, updatedAt, description, permissions, created, ...rest } =
+      roleEntity;
+    roleRepository.findAllRole.mockResolvedValue({
+      items: [rest],
+      meta: {
+        page: 1,
+        limit: 10,
+        totalItems: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    } as unknown as Awaited<ReturnType<RoleRepository['findAllRole']>>);
+
+    const result = await service.findAllRole({});
+
+    expect(result.items[0].createdAt).toBeUndefined();
+    expect(result.items[0].updatedAt).toBeUndefined();
+    expect(result.items[0].permissions).toEqual([]);
+    expect(result.items[0].createdByName).toBeUndefined();
   });
 });

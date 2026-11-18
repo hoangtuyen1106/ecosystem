@@ -25,6 +25,7 @@ export enum PERMISSION {
   ROLE_GET_ALL = 'role.get_all',
   ROLE_UPDATE = 'role.update',
   ROLE_DELETE = 'role.delete',
+  ROLE_CHANGE_STATUS = 'role.change_status',
 
   /* PRODUCT */
   PRODUCT_CREATE = 'product.create',

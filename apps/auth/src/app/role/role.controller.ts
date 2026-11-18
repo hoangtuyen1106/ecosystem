@@ -2,6 +2,7 @@ import { HTTP_MESSAGE, TCP_REQUEST_MESSAGE } from '@ecosystem/constants';
 import { RequestParams } from '@ecosystem/decorators';
 import { TcpLoggingInterceptor } from '@ecosystem/interceptors';
 import {
+  ChangeRoleStatusTcpRequest,
   CreateRoleTcpRequest,
   GetRolesCursorTcpRequest,
   GetRolesOffsetTcpRequest,
@@ -28,8 +29,8 @@ export class RoleController {
   }
 
   @MessagePattern(TCP_REQUEST_MESSAGE.ROLE.GET_ALL)
-  async findAllOffset(@RequestParams() query: GetRolesOffsetTcpRequest) {
-    const roles = await this.roleService.findAllOffset(query);
+  async findAllRole(@RequestParams() query: GetRolesOffsetTcpRequest) {
+    const roles = await this.roleService.findAllRole(query);
     return Response.success<RoleListOffsetTcpResponse>(roles);
   }
 
@@ -58,6 +59,15 @@ export class RoleController {
   async remove(@RequestParams() id: number) {
     await this.roleService.remove(Number(id));
     return Response.success<string>(HTTP_MESSAGE.DELETED);
+  }
+
+  @MessagePattern(TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS)
+  async changeStatus(@RequestParams() data: ChangeRoleStatusTcpRequest) {
+    const role = await this.roleService.changeStatus({
+      ...data,
+      id: Number(data.id),
+    });
+    return Response.success<RoleTcpResponse>(role);
   }
 
   @MessagePattern(TCP_REQUEST_MESSAGE.ROLE.SET_PERMISSIONS)

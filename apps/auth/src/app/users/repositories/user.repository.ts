@@ -31,7 +31,8 @@ export class UserRepository {
   }
 
   async checkEmailExists(email: string): Promise<boolean> {
-    const result = await this.prismaService.user.findUnique({
+    // email không còn @unique trong schema nên phải dùng findFirst
+    const result = await this.prismaService.user.findFirst({
       where: {
         email,
       },

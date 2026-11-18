@@ -9,6 +9,12 @@ export class RoleResponseDto extends BaseResponseDto {
   @ApiPropertyOptional()
   description?: string;
 
+  @ApiPropertyOptional({ description: 'ID user tạo role' })
+  createdBy?: string;
+
+  @ApiPropertyOptional({ description: 'Tên (firstName) user tạo role' })
+  createdByName?: string;
+
   @ApiProperty()
   active: boolean;
 

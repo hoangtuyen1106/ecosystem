@@ -1,5 +1,6 @@
 import { PERMISSION } from '@ecosystem/constants';
 import {
+  ChangeRoleStatusTcpRequest,
   CreateRoleTcpRequest,
   GetRolesCursorTcpRequest,
   GetRolesOffsetTcpRequest,
@@ -9,7 +10,7 @@ import {
   SetRolePermissionsTcpRequest,
   UpdateRoleTcpRequest,
 } from '@ecosystem/interfaces';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { mapPrismaError } from '../prisma/prisma-error.util';
 import { RoleEntity, RoleRepository } from './repositories/role.repository';
 
@@ -26,7 +27,7 @@ export class RoleService {
     }
   }
 
-  async findAllOffset(
+  async findAllRole(
     query: GetRolesOffsetTcpRequest,
   ): Promise<RoleListOffsetTcpResponse> {
     const { items, meta } = await this.roleRepository.findAllRole(query);
@@ -47,10 +48,7 @@ export class RoleService {
   }
 
   async findOne(id: number): Promise<RoleResponseDto> {
-    const role = await this.roleRepository.findById(id);
-    if (!role) {
-      throw new NotFoundException('Role not found');
-    }
+    const role = await this.roleRepository.findOne(id);
     return this.toRoleResponse(role);
   }
 
@@ -67,7 +65,7 @@ export class RoleService {
 
   async remove(id: number): Promise<void> {
     try {
-      await this.roleRepository.softDelete(id);
+      await this.roleRepository.remove(id);
     } catch (error) {
       mapPrismaError(error, 'Role');
     }
@@ -76,11 +74,6 @@ export class RoleService {
   async setPermissions(
     dto: SetRolePermissionsTcpRequest,
   ): Promise<RoleResponseDto> {
-    const role = await this.roleRepository.findById(dto.roleId, true);
-    if (!role) {
-      throw new NotFoundException('Role not found');
-    }
-
     try {
       const updated = await this.roleRepository.setPermissions(
         dto.roleId,
@@ -92,15 +85,32 @@ export class RoleService {
     }
   }
 
+  async changeStatus(
+    dto: ChangeRoleStatusTcpRequest,
+  ): Promise<RoleResponseDto> {
+    try {
+      const updated = await this.roleRepository.changeStatus(dto.id, dto.active);
+      return this.toRoleResponse(updated);
+    } catch (error) {
+      mapPrismaError(error, 'Role');
+    }
+  }
+
   private toRoleResponse(role: RoleEntity): RoleResponseDto {
+    // LIST_INFO không select description/permissions/createdAt/updatedAt
+    const createdAt = role.createdAt?.toISOString();
+    const updatedAt = role.updatedAt?.toISOString();
+
     return {
       id: role.id,
       name: role.name,
       description: role.description ?? undefined,
       active: role.active,
-      createdAt: role.createdAt.toISOString(),
-      updatedAt: role.updatedAt.toISOString(),
-      permissions: role.permissions as PERMISSION[],
-    };
+      createdBy: role.createdBy ?? undefined,
+      createdByName: role.created?.firstName,
+      ...(createdAt ? { createdAt } : {}),
+      ...(updatedAt ? { updatedAt } : {}),
+      permissions: (role.permissions ?? []) as PERMISSION[],
+    } as RoleResponseDto;
   }
 }

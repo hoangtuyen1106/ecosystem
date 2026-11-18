@@ -25,6 +25,7 @@ enum ROLE {
   GET_BY_ID = 'role.get_by_id',
   UPDATE = 'role.update',
   DELETE = 'role.delete',
+  CHANGE_STATUS = 'role.change_status',
   SET_PERMISSIONS = 'role.set_permissions',
 }
 
