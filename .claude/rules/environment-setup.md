@@ -51,7 +51,7 @@ Không commit `.env` — toàn bộ `apps/*/.env` đã bị gitignore.
 | products | 3003              | 3002                  | **5001**   | **5002**     |
 | bff      | 3000              | chưa có trong compose | —          | —            |
 
-auth còn mở TCP `TCP_AUTH_PORT` (local `.env`: 3103) cho các message `role.*`/`user.*`; bff dùng hằng `TCP_PORT.TCP_AUTH_PORT` khi tạo client TCP.
+auth còn mở TCP `TCP_AUTH_PORT` (local `.env`: 3103) cho các message `role.*`/`user.*` (CRUD role + CRUD user); bff dùng hằng `TCP_PORT.TCP_AUTH_PORT` khi tạo client TCP.
 
 Port local lấy từ `apps/*/.env`; trong compose, service gọi nhau bằng hostname (`auth:5000`, `jobs:5001`, `products:5002`, `pulsar:6650`).
 
@@ -66,6 +66,7 @@ Infra: postgres `5432`, pulsar `6650`, redis `6379`, keycloak `8180` (chưa dùn
 | bff Swagger             | `http://localhost:3000/doc`                                                           |
 | bff health              | `http://localhost:3000/bff/health`                                                    |
 | bff REST roles          | `http://localhost:3000/api/v1/roles`                                                  |
+| bff REST users          | `http://localhost:3000/api/v1/users`                                                  |
 | auth                    | gRPC `localhost:5000`; TCP `localhost:3103` (role/users); không có HTTP API hoạt động |
 | products                | gRPC `localhost:5001`; không có HTTP API                                              |
 | executor                | Không HTTP API                                                                        |

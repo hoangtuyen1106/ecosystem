@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { KeycloakModule } from '../keycloak/keycloak.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { AuthorizerGrpcController } from './authorizer-grpc.controller';
+import { AuthGrpcController } from './auth-grpc.controller';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { AuthorizerGrpcController } from './authorizer-grpc.controller';
     PrismaModule,
     
   ],
-  controllers: [AuthController, AuthorizerGrpcController],
+  controllers: [AuthController, AuthGrpcController],
   providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

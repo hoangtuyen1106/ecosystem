@@ -13,7 +13,7 @@ import { AuthService } from './auth.service';
 @Controller()
 @AuthorizerServiceControllerMethods()
 @UseInterceptors(GrpcLoggingInterceptor)
-export class AuthorizerGrpcController implements AuthorizerServiceController {
+export class AuthGrpcController implements AuthorizerServiceController {
 
   constructor(private readonly authService: AuthService) {}
 

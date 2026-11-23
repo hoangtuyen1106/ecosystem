@@ -10,6 +10,7 @@ const roleEntity = {
   description: 'Admin',
   status: ROLE_STATUS.ACTIVE,
   authorId: null,
+  searchUnicode: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   permissions: [PERMISSION.ROLE_CREATE],

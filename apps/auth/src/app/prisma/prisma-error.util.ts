@@ -6,7 +6,7 @@ interface PrismaKnownError {
 
 export function mapPrismaError(
   error: unknown,
-  entity: 'Role' | 'Permission',
+  entity: 'Role' | 'Permission' | 'User',
 ): never {
   const code = (error as PrismaKnownError)?.code;
 

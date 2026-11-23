@@ -20,6 +20,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { StringUtil } from '@ecosystem/utils';
 
 @Injectable()
 export class RoleRepository {
@@ -107,10 +108,10 @@ export class RoleRepository {
 
     // Search
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
+      where.searchUnicode = {
+        contains: StringUtil.formatUnicode(search, { lowercase: true }),
+        mode: 'insensitive',
+      };
     }
 
     // status là mảng (lọc nhiều trạng thái cùng lúc) nên dùng `in`
@@ -187,7 +188,6 @@ export class RoleRepository {
         author: {
           select: {
             id: true,
-            email: true,
             firstName: true,
             lastName: true,
           },
@@ -212,7 +212,9 @@ export class RoleRepository {
     return this.prismaService.role.update({
       where: { id },
       data: {
-        ...(name !== undefined ? { name } : {}),
+        ...(name !== undefined
+          ? { name, searchUnicode: StringUtil.toSearchKey([name]) }
+          : {}),
         ...(description !== undefined ? { description } : {}),
         // PATCH permissions thay thế toàn bộ danh sách (giống setPermissions)
         ...(permissions !== undefined ? { permissions } : {}),
@@ -221,7 +223,6 @@ export class RoleRepository {
         author: {
           select: {
             id: true,
-            email: true,
             firstName: true,
             lastName: true,
           },
@@ -256,12 +257,12 @@ export class RoleRepository {
         ...roleData,
         permissions,
         authorId: userId,
+        searchUnicode: StringUtil.toSearchKey([roleData.name]),
       },
       include: {
         author: {
           select: {
             id: true,
-            email: true,
             firstName: true,
             lastName: true,
           },
@@ -279,7 +280,6 @@ export class RoleRepository {
         author: {
           select: {
             id: true,
-            email: true,
             firstName: true,
             lastName: true,
           },
@@ -298,7 +298,6 @@ export class RoleRepository {
         author: {
           select: {
             id: true,
-            email: true,
             firstName: true,
             lastName: true,
           },
@@ -314,6 +313,5 @@ export class RoleRepository {
     return count > 0;
   }
 }
-
 
 export type RoleEntity = Awaited<ReturnType<RoleRepository['findOne']>>;

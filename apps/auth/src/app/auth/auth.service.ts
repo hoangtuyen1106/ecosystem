@@ -1,12 +1,12 @@
 import { AuthorizeResponse, JWTPayload } from '@ecosystem/grpc';
 import { LoginTcpRequest } from '@ecosystem/interfaces';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { compare } from 'bcryptjs';
-import { JwksClient } from 'jwks-rsa';
+import { ConfigService } from '@nestjs/config';
+import jwt, { Jwt, JwtPayload } from 'jsonwebtoken';
+import JwksRsa, { JwksClient } from 'jwks-rsa';
 import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
-import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+
 
 
 @Injectable()
@@ -16,10 +16,19 @@ export class AuthService {
 
   constructor(
     private readonly keycloakHttpService: KeycloakHttpService,
-    private readonly prismaService: PrismaService,
-    private readonly jwtService: JwtService,
     private readonly userService: UsersService,
-  ) {}
+    private readonly configService: ConfigService
+  ) {
+    const host = this.configService.getOrThrow('KEYCLOAK_HOST');
+    const realm = this.configService.get('KEYCLOAK_REALM');
+
+    this.jwksClient = JwksRsa({
+      jwksUri: `${host}/realms/${realm}/protocol/openid-connect/certs`,
+      cache: true,
+      rateLimit: true,
+    });
+
+  }
   async login(params: LoginTcpRequest) {
     const { username, password } = params;
     const { access_token: accessToken, refresh_token: refreshToken } =
@@ -34,61 +43,53 @@ export class AuthService {
     };
   }
 
-  private async verifyUser(identifier: string, password: string) {
-    try {
-      const user = await this.prismaService.user.findFirst({
-        where: {
-          OR: [{ username: identifier }, { email: identifier }],
-        },
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-
-      const authenticated = await compare(password, user.password);
-      if (!authenticated) {
-        throw new UnauthorizedException();
-      }
-      return user;
-    } catch {
-      throw new UnauthorizedException('Credentials are not valid');
-    }
-  }
-
   async verifyUserToken(token: string): Promise<AuthorizeResponse> {
-    const decoded = this.jwtService.decode(token, {
-      complete: true,
-    });
-
-    if (!decoded || !decoded.header?.kid) {
+    const decoded = jwt.decode(token, { complete: true }) as Jwt;
+    if (!decoded || !decoded.header || !decoded.header?.kid) {
       throw new UnauthorizedException('Invalid token structure');
     }
-
+    this.logger.debug(decoded);
     try {
       const key = await this.jwksClient.getSigningKey(decoded.header.kid);
       const publicKey = key.getPublicKey();
+      const payload = jwt.verify(token, publicKey, {
+        algorithms: ['RS256'],
+      }) as JwtPayload;
 
-      const payload = await this.jwtService.verifyAsync<JWTPayload>(
-        token,
-        {
-          publicKey,
-          algorithms: ['RS256'],
-        },
-      );
-
-      this.logger.debug({ userId: payload.sub });
+      if (!payload.sub) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
 
       const user = await this.userValidation(payload.sub);
 
       return {
         valid: true,
         metadata: {
-          jwt: payload,
-          // permissions: (user.roles as unknown as Role[])
-          //   .flatMap((role) => role.permissions),
-          // user: grpcUser,
-          userId: user.id,
+          keycloakId: user.id ?? undefined,
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName ?? undefined,
+            email: user.email,
+            roles: user.roles.map(({ role }) => ({
+              name: role.name,
+              description: role.description ?? '',
+              permissions: role.permissions,
+            })),
+          },
+          jwt: {
+            iss: payload.iss ?? '',
+            aud: Array.isArray(payload.aud)
+              ? payload.aud.join(',')
+              : (payload.aud ?? ''),
+            iat: payload.iat ?? 0,
+            exp: payload.exp ?? 0,
+            sub: payload.sub,
+            atHash: payload['at_hash'] ?? '',
+            sid: payload['sid'] ?? '',
+            nonce: payload['nonce'] ?? '',
+            isExpired: payload.exp ? payload.exp * 1000 <= Date.now() : false,
+          },
         },
       };
     } catch (error) {
@@ -97,8 +98,8 @@ export class AuthService {
     }
   }
 
-  private async userValidation(keycloak_id: string) {
-    const user = await this.userService.getUserByKeycloakId(keycloak_id);
+  private async userValidation(keycloakId: string) {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

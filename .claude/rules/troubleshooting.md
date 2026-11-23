@@ -19,6 +19,12 @@
 | Port lệch local ↔ compose                        | jobs HTTP 3004 (compose 3001), gRPC 5002/5001; products HTTP 3003/3002, gRPC 5001/5002           | Luôn đọc `apps/*/.env` hoặc compose, không hardcode                             |
 | `docker:infra` không tạo DB nghiệp vụ             | Compose infra không mount `docker/init-db.sql`                                                   | `docker compose exec -T postgres psql -U postgres < docker/init-db.sql`         |
 | `scripts/fibonacci.mjs` dùng URL cũ               | Gọi `/graphql`; jobs GraphQL thực tế ở `/jobs`, auth chưa mount GraphQL                          | Sửa URL trước khi dùng làm smoke test                                           |
+| `POST /users/create` trả 404                      | Route cũ đã đổi thành `POST /users` (chuẩn REST như `/roles`)                                    | Cập nhật client sang `POST /api/v1/users`                                       |
+| `GET /users/:id` trả 404 dù user từng tồn tại      | `DELETE /users/:id` là **soft delete** (`deleted = true`); list/findOne lọc `deleted = false`     | Đây là hành vi đúng; muốn xem lại phải khôi phục `deleted = false` trong DB     |
+| Cursor user lỗi/không phân trang đúng              | `users.id` là UUID string, không dùng `CursorPaginationDto` (`cursor: number`)                    | Dùng `UuidCursorPaginationDto`; cursor chỉ chính xác khi `sortBy=id`            |
+| `gender`/`status` user lưu sai giá trị             | Code cũ gọi `.toUpperCase()` trong khi Prisma enum đã là chữ thường (`male`, `active`)            | Không dùng `toUpperCase()`; truyền thẳng giá trị `USER_GENDER`/`USER_STATUS`    |
+| Update/delete user không đổi bên Keycloak          | Chỉ `create` gọi Keycloak; update/delete hiện chỉ sửa DB                                          | Cần bổ sung đồng bộ Keycloak khi triển khai thật                                |
+| Tạo user báo email trùng dù DB không unique        | `email` không còn `@unique`; service check trùng bằng `findFirst` (create + update loại trừ self) | Đây là validate nghiệp vụ; nếu cần chặn tuyệt đối phải thêm unique index/DB     |
 
 ## Prisma (auth, jobs)
 

@@ -21,7 +21,7 @@ ecosystem/
 │   ├── auth/                  # Xác thực, users, RBAC role (Prisma + TCP + gRPC)
 │   │   ├── src/app/
 │   │   │   ├── auth/          # resolver, service, controller, guards, strategies
-│   │   │   ├── users/         # service, repositories, dto
+│   │   │   ├── users/         # users.controller (TCP), service, repositories, mappers
 │   │   │   ├── role/          # role.controller (TCP), service, repositories/, mappers/
 │   │   │   ├── keycloak/      # tích hợp Keycloak
 │   │   │   └── prisma/        # PrismaService (PrismaPg adapter), prisma-error.util.ts
@@ -84,7 +84,7 @@ ecosystem/
 - Mỗi feature một module; resolver/controller/service/dto/model nằm cùng thư mục feature.
 - GraphQL model/input chỉ ở jobs; model dùng chung đặt trong `libs/graphql` (`AbstractModel`).
 - Repository pattern dùng ở auth (`apps/auth/src/app/users/repositories`, `apps/auth/src/app/role/repositories`).
-- Feature RBAC: auth chạy TCP (`*.controller.ts` dùng `@MessagePattern`), bff expose REST và map DTO ↔ TCP interface trong `libs/interfaces`.
+- Feature RBAC + User: auth chạy TCP (`*.controller.ts` dùng `@MessagePattern`), bff expose REST và map DTO ↔ TCP interface trong `libs/interfaces`. User dùng chung pattern với Role nhưng id UUID, cursor `UuidCursorPaginationDto`, xoá mềm.
 - products inject `DATABASE_CONNECTION`; không tạo Prisma client cho products.
 - Không sửa `src/generated/prisma`; sinh lại bằng target `generate-prisma`.
 - Không import chéo giữa các app; giao tiếp qua gRPC hoặc Pulsar. Code dùng chung đặt trong `libs/`.

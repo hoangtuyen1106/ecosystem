@@ -4,11 +4,9 @@ import {
   ExchangeUserTokenResponse,
 } from '@ecosystem/interfaces';
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
-  Logger,
-  UnauthorizedException,
+  Logger
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';

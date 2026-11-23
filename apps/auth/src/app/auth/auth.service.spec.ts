@@ -3,7 +3,6 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 describe('AuthService', () => {
@@ -26,12 +25,11 @@ describe('AuthService', () => {
           useValue: {},
         },
         {
-          provide: JwtService,
-          useValue: {},
-        },
-        {
           provide: ConfigService,
-          useValue: {},
+          useValue: {
+            getOrThrow: jest.fn((key: string) => `mock-${key}`),
+            get: jest.fn(),
+          },
         },
       ],
     }).compile();

@@ -34,7 +34,7 @@ message JWTPayload {
 }
 
 message AuthorizedMetadata {
-  optional string userId = 1;
+  optional string keycloakId = 1;
   optional User user = 2;
   optional JWTPayload jwt = 3;
 }
@@ -50,4 +50,5 @@ message User {
   string firstName = 2;
   optional string lastName = 3;
   string email = 4;
+  repeated Role roles = 6;
 }

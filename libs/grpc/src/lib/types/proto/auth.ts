@@ -36,7 +36,7 @@ export interface JWTPayload {
 }
 
 export interface AuthorizedMetadata {
-  userId?: string | undefined;
+  keycloakId?: string | undefined;
   user?: User | undefined;
   jwt?: JWTPayload | undefined;
 }
@@ -52,6 +52,7 @@ export interface User {
   firstName: string;
   lastName?: string | undefined;
   email: string;
+  roles: Role[];
 }
 
 export interface AuthorizerServiceClient {

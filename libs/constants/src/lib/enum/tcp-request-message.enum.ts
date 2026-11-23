@@ -15,7 +15,12 @@ enum PRODUCT {
 enum USER {
   CREATE = 'user.create',
   GET_ALL = 'user.get_all',
+  GET_ALL_CURSOR = 'user.get_all_cursor',
+  GET_BY_ID = 'user.get_by_id',
   GET_BY_USER_ID = 'user.get_by_user_id',
+  UPDATE = 'user.update',
+  DELETE = 'user.delete',
+  CHANGE_STATUS = 'user.change_status',
 }
 
 enum ROLE {

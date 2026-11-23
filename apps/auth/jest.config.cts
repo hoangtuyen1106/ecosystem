@@ -5,7 +5,7 @@ module.exports = {
   transform: {
     '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
-  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
+  transformIgnorePatterns: ['node_modules/(?!(uuid|jwks-rsa|jose)/)'],
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '../../coverage/apps/auth',
 };

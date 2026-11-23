@@ -52,6 +52,27 @@ Quy ước hiện tại:
 - FK người tạo là `authorId` (nullable) → relation `author`; response trả `authorId` + `authorName`.
 - Lọc theo trạng thái: `status` là mảng, repository dùng `{ in: status }`.
 
+## Thay đổi feature User (auth TCP + bff REST)
+
+Pattern giống Role, khác biệt chính: `User.id` là **UUID string**, xoá là **soft delete**, response đọc kèm role.
+
+1. Thêm message vào enum `USER` — `libs/constants/src/lib/enum/tcp-request-message.enum.ts`; nếu thêm trạng thái mới thì bổ sung `USER_STATUS`/`USER_GENDER` trong `libs/constants/src/lib/enum/user.enum.ts`.
+2. Thêm DTO/interface: `libs/interfaces/src/lib/gateway/user/user.request.dto.ts`, `libs/interfaces/src/lib/tcp/user/user.request.interface.ts` (và response nếu hình dạng trả về đổi).
+3. auth: `user.repository.ts` → `users.service.ts` → `@MessagePattern` trong `users.controller.ts`.
+4. bff: `users.service.ts` (gửi TCP + `formatResponseDates`) → `users.controller.ts` (`@Authorization({ secured: true })`, Swagger).
+5. Test: `npx nx test auth`, `npx nx test bff`.
+6. Kiểm tra: `npx nx run-many -t lint test build -p auth bff`.
+
+Quy ước hiện tại:
+
+- `id` luôn là **string UUID**: dùng `@Param('id') id: string` (không `ParseIntPipe`) và `UuidCursorPaginationDto` cho cursor.
+- `PATCH /users/:id` chỉ sửa `username/email/firstName/lastName/avatar/phone/birthday/gender`; đổi trạng thái qua `PATCH /users/:id/status`; đổi password phải có endpoint riêng.
+- `remove` là **soft delete**: `update({ deleted: true })`, không xoá `user_roles`; `buildWhere` luôn có `deleted: false`.
+- Response trả `roleIds`/`roleNames` bằng include `user_roles → role`; chưa có API gán role.
+- `email`/`username` không unique trong schema → dùng `findFirst`; service check trùng email khi create và khi update (`excludeId`).
+- `searchUnicode` ghi từ `username/email/firstName/lastName/phone` bằng `StringUtil.toSearchKey`, lọc `search` bằng `StringUtil.formatUnicode(search, { lowercase: true })`.
+- Enum Prisma member **chữ thường**; không dùng `toUpperCase()` khi ghi `gender`/`status`.
+
 ## Sửa gRPC contract
 
 1. Sửa proto trong `libs/grpc/src/lib/proto/*.proto`.
