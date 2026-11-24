@@ -1,9 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
-import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { TCP_SERVICES } from '@ecosystem/constants';
 import { ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
+import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -17,12 +16,8 @@ describe('AuthService', () => {
           useValue: {},
         },
         {
-          provide: PrismaService,
-          useValue: {},
-        },
-        {
-          provide: UsersService,
-          useValue: {},
+          provide: TCP_SERVICES.USER_ACCESS_SERVICE,
+          useValue: { send: jest.fn(), emit: jest.fn() },
         },
         {
           provide: ConfigService,

@@ -19,6 +19,8 @@ export type GetUsersTcpRequest = GetUsersQueryDto;
 
 export type DeleteUserTcpRequest = string;
 
+export type GetUserByKeycloakIdTcpRequest = { keycloakId: string };
+
 export type ChangeUserStatusTcpRequest = {
   id: string;
   status: USER_STATUS;

@@ -40,6 +40,14 @@
       "sourceMaps": true,
       "cwd": "${workspaceFolder}/apps/bff",
       "port": 9233
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "User Debug",
+      "sourceMaps": true,
+      "cwd": "${workspaceFolder}/apps/user-access",
+      "port": 9234
     }
   ]
 }

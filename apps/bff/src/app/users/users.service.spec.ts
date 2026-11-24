@@ -24,7 +24,7 @@ describe('UsersService - BFF', () => {
       providers: [
         UsersService,
         {
-          provide: TCP_SERVICES.AUTH_SERVICE,
+          provide: TCP_SERVICES.USER_ACCESS_SERVICE,
           useValue: userClient,
         },
       ],
@@ -45,6 +45,7 @@ describe('UsersService - BFF', () => {
         password: 'StrongPassword123!',
         firstName: 'Test',
         lastName: 'User',
+        roleIds: [],
         status: USER_STATUS.ACTIVE,
       };
 

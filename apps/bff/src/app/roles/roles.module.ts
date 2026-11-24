@@ -8,11 +8,11 @@ import { RolesService } from './roles.service';
   imports: [
     ClientsModule.register([
       {
-        name: TCP_SERVICES.AUTH_SERVICE,
+        name: TCP_SERVICES.USER_ACCESS_SERVICE,
         transport: Transport.TCP,
         options: {
           host: 'localhost',
-          port: TCP_PORT.TCP_AUTH_PORT,
+          port: TCP_PORT.TCP_USER_ACCESS_PORT,
         },
       },
     ]),

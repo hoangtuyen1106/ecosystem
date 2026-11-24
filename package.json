@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=8192' nx run-many -t serve -p auth jobs executor products bff --parallel 5 --output-style=stream",
-    "stop": "lsof -ti :3000 -ti :3001 -ti :3002 -ti :3003 | xargs kill -9 2>/dev/null || echo 'No servers running'",
+    "start": "NODE_OPTIONS='--max-old-space-size=8192' nx run-many -t serve -p auth user-access jobs executor products bff --parallel 6 --output-style=stream",
+    "stop": "lsof -ti :3000 -ti :3001 -ti :3002 -ti :3003 -ti :3004 -ti :3005 -ti :3103 -ti :3104 | xargs kill -9 2>/dev/null || echo 'No servers running'",
     "docker:infra": "docker compose up -d",
     "docker:apps": "docker compose -f docker-compose.apps.yaml up --build",
     "docker:apps:down": "docker compose -f docker-compose.apps.yaml down"
@@ -71,7 +71,8 @@
     "@ecosystem/observability": "dist/libs/observability/main",
     "@ecosystem/decorators": "dist/libs/decorators/main",
     "@ecosystem/redis": "dist/libs/redis/main",
-    "@ecosystem/utils": "dist/libs/utils/main"
+    "@ecosystem/utils": "dist/libs/utils/main",
+    "@ecosystem/middlewares": "dist/libs/middlewares/main"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

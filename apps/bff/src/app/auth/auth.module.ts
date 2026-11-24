@@ -17,5 +17,6 @@ import { TCP_PORT, TCP_SERVICES } from '@ecosystem/constants';
     ]),
   ],
   controllers: [AuthController],
+  exports: [ClientsModule],
 })
 export class AuthModule {}

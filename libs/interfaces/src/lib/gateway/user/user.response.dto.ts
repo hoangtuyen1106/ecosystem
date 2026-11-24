@@ -30,6 +30,9 @@ export class UserResponseDto extends BaseResponseDto {
   @ApiProperty({ enum: USER_STATUS })
   status: USER_STATUS;
 
+  @ApiProperty()
+  keycloakId: string;
+
   @ApiProperty({ description: 'ID các role của user', type: [Number] })
   roleIds: number[];
 

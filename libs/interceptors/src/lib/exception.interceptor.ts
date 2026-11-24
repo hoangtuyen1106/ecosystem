@@ -1,6 +1,7 @@
 import { HTTP_MESSAGE, MetadataKeys } from '@ecosystem/constants';
 import { ResponseDto } from '@ecosystem/interfaces';
 import { CallHandler, ExecutionContext, HttpException, HttpStatus, Logger, NestInterceptor } from '@nestjs/common';
+import { Request } from 'express';
 import { catchError, map, Observable } from 'rxjs';
 
 export class ExceptionInterceptor implements NestInterceptor {

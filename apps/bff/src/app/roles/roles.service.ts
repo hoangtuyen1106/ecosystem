@@ -25,11 +25,11 @@ import { map } from 'rxjs';
 @Injectable()
 export class RolesService {
   constructor(
-    @Inject(TCP_SERVICES.AUTH_SERVICE) private readonly authClient: TcpClient,
+    @Inject(TCP_SERVICES.USER_ACCESS_SERVICE) private readonly userAccessClient: TcpClient,
   ) {}
 
   create(body: CreateRoleRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         RoleTcpResponse,
         CreateRoleTcpRequest
@@ -40,7 +40,7 @@ export class RolesService {
   }
 
   findAll(query?: GetRolesOffsetQueryDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         RoleListOffsetTcpResponse,
         GetRolesOffsetTcpRequest
@@ -51,7 +51,7 @@ export class RolesService {
   }
 
   findAllCursor(query?: GetRolesCursorQueryDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         RoleListCursorTcpResponse,
         GetRolesCursorTcpRequest
@@ -62,7 +62,7 @@ export class RolesService {
   }
 
   findOne(id: number) {
-    return this.authClient
+    return this.userAccessClient
       .send<RoleTcpResponse, number>(TCP_REQUEST_MESSAGE.ROLE.GET_BY_ID, id)
       .pipe(
         map((data) => new ResponseDto({ data: formatResponseDates(data) })),
@@ -70,7 +70,7 @@ export class RolesService {
   }
 
   update(id: number, body: UpdateRoleRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         RoleTcpResponse,
         UpdateRoleTcpRequest
@@ -81,7 +81,7 @@ export class RolesService {
   }
 
   remove(id: number) {
-    return this.authClient
+    return this.userAccessClient
       .send<string, number>(TCP_REQUEST_MESSAGE.ROLE.DELETE, id)
       .pipe(
         map((data) => new ResponseDto({ data: formatResponseDates(data) })),
@@ -89,7 +89,7 @@ export class RolesService {
   }
 
   changeStatus(id: number, body: ChangeRoleStatusRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<RoleTcpResponse, ChangeRoleStatusTcpRequest>(
         TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS,
         { id, status: body.status },
@@ -100,7 +100,7 @@ export class RolesService {
   }
 
   setPermissions(id: number, body: SetRolePermissionsRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         RoleTcpResponse,
         SetRolePermissionsTcpRequest

@@ -23,11 +23,11 @@ import { map } from 'rxjs';
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(TCP_SERVICES.AUTH_SERVICE) private readonly authClient: TcpClient,
+    @Inject(TCP_SERVICES.USER_ACCESS_SERVICE) private readonly userAccessClient: TcpClient,
   ) {}
 
   create(body: CreateUserRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         UserTcpResponse,
         CreateUserTcpRequest
@@ -38,7 +38,7 @@ export class UsersService {
   }
 
   findAll(query?: GetUsersOffsetQueryDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         UserListOffsetTcpResponse,
         GetUsersOffsetTcpRequest
@@ -49,7 +49,7 @@ export class UsersService {
   }
 
   findAllCursor(query?: GetUsersCursorQueryDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         UserListCursorTcpResponse,
         GetUsersCursorTcpRequest
@@ -60,7 +60,7 @@ export class UsersService {
   }
 
   findOne(id: string) {
-    return this.authClient
+    return this.userAccessClient
       .send<UserTcpResponse, string>(TCP_REQUEST_MESSAGE.USER.GET_BY_ID, id)
       .pipe(
         map((data) => new ResponseDto({ data: formatResponseDates(data) })),
@@ -68,7 +68,7 @@ export class UsersService {
   }
 
   update(id: string, body: UpdateUserRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<
         UserTcpResponse,
         UpdateUserTcpRequest
@@ -79,7 +79,7 @@ export class UsersService {
   }
 
   remove(id: string) {
-    return this.authClient
+    return this.userAccessClient
       .send<string, string>(TCP_REQUEST_MESSAGE.USER.DELETE, id)
       .pipe(
         map((data) => new ResponseDto({ data: formatResponseDates(data) })),
@@ -87,7 +87,7 @@ export class UsersService {
   }
 
   changeStatus(id: string, body: ChangeUserStatusRequestDto) {
-    return this.authClient
+    return this.userAccessClient
       .send<UserTcpResponse, ChangeUserStatusTcpRequest>(
         TCP_REQUEST_MESSAGE.USER.CHANGE_STATUS,
         { id, status: body.status },

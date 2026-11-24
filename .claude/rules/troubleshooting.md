@@ -5,7 +5,8 @@
 | Hiện tượng                                        | Trạng thái                                                                                       | Xử lý tạm                                                                       |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | auth không có endpoint GraphQL                    | `AuthResolver` tồn tại nhưng `app.module.ts` chưa import `GraphQLModule`                         | Thêm `GraphQLModule` hoặc dùng gRPC `Authenticate`                              |
-| `bff:test` fail "unexpected token"                | Jest không transform `node_modules/uuid` (ESM `export`) — lỗi hạ tầng có từ trước, không do role | Cấu hình `transformIgnorePatterns`/`transform` cho `uuid` trong jest config bff |
+| `bff:test` fail "unexpected token"                | Đã xử lý: bff không còn import `uuid`; `user-access` có `transformIgnorePatterns` cho `uuid`      | Nếu tái xuất hiện, thêm `uuid` vào `transformIgnorePatterns` của jest config app tương ứng |
+| Auth verify token trả 401 dù token đúng           | Auth gọi TCP `user.get_by_keycloak_id` tới user-access (3104)                                     | Kiểm tra user-access đang chạy + `TCP_USER_ACCESS_HOST`/port 3104                              |
 | `authorId` của role luôn là UUID giả              | `role.repository.create()` hardcode `00000000-0000-0000-0000-000000000001`                       | Cần truyền user id thật từ request context qua TCP; cột nullable để chấp nhận dữ liệu cũ |
 | `PATCH /roles/:id` gửi `status` không có tác dụng | DTO/`UpdateRoleData` đã bỏ `status` (by design)                                                  | Dùng `PATCH /roles/:id/status` body `{ status: 'active' \| 'inactive' }`        |
 | API cũ dùng `active`/`createdBy`                  | Đã đổi thành `status` (enum) và `authorId`/`authorName`                                          | Client cũ gửi `active` bị `whitelist` loại bỏ; cập nhật client                  |
@@ -26,11 +27,12 @@
 | Update/delete user không đổi bên Keycloak          | Chỉ `create` gọi Keycloak; update/delete hiện chỉ sửa DB                                          | Cần bổ sung đồng bộ Keycloak khi triển khai thật                                |
 | Tạo user báo email trùng dù DB không unique        | `email` không còn `@unique`; service check trùng bằng `findFirst` (create + update loại trừ self) | Đây là validate nghiệp vụ; nếu cần chặn tuyệt đối phải thêm unique index/DB     |
 
-## Prisma (auth, jobs)
+## Prisma (user-access, jobs)
 
+- `auth` không còn Prisma/DB; mọi lỗi user/role Prisma kiểm tra `apps/user-access`.
 - Lỗi missing generated types → `npx nx run <service>:generate-prisma`.
-- `DATABASE_URL` sai/thiếu → kiểm tra `apps/<service>/.env`; Prisma 7 dùng `PrismaPg` + `pg.Pool`.
-- `prisma.config.ts` (auth) dùng `env('DATABASE_URL')` — không còn fallback; migrate sẽ fail nếu thiếu biến.
+- `DATABASE_URL` sai/thiếu → kiểm tra `apps/user-access/.env` (đang trỏ DB `auth` để giữ dữ liệu); Prisma 7 dùng `PrismaPg` + `pg.Pool`.
+- `prisma.config.ts` (user-access) dùng `env('DATABASE_URL')` — không còn fallback; migrate sẽ fail nếu thiếu biến.
 - DB chưa tồn tại → tạo bằng `docker/init-db.sql` hoặc `docker compose exec postgres psql -U postgres -c 'CREATE DATABASE auth;'`.
 - Migration drift → chạy `npx nx run <service>:migrate-prisma --name=<mo_ta>` để sinh migration mới.
 - Auth schema đã đồng bộ tới `20261118184004_role_author` (gồm `search_unicode`, `roles.status`, rename `created_by → author_id`); nếu DB cũ lệch (serial/thiếu `deleted`, thiếu `permissions String[]`) thì tạo lại DB hoặc chạy migrate deploy từ đầu.

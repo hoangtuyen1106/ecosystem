@@ -6,10 +6,7 @@
   "tags": [],
   "targets": {
     "build": {
-      "dependsOn": ["generate-prisma", "^build"]
-    },
-    "test": {
-      "dependsOn": ["generate-prisma"]
+      "dependsOn": ["^build"]
     },
     "serve": {
       "executor": "@nx/js:node",
@@ -27,20 +24,6 @@
         "production": {
           "buildTarget": "auth:build:production"
         }
-      }
-    },
-    "generate-prisma": {
-      "command": "prisma generate",
-      "options": {
-        "cwd": "{projectRoot}",
-        "input": ["prisma/schema.prisma"]
-      },
-      "cache": true
-    },
-    "migrate-prisma": {
-      "command": "prisma migrate dev",
-      "options": {
-        "cwd": "{projectRoot}"
       }
     }
   }

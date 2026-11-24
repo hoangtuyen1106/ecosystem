@@ -13,14 +13,14 @@ import { AuthService } from './auth.service';
 @Controller()
 @AuthorizerServiceControllerMethods()
 @UseInterceptors(GrpcLoggingInterceptor)
-export class AuthGrpcController implements AuthorizerServiceController {
+export class AuthGrpcController  {
 
   constructor(private readonly authService: AuthService) {}
 
   async verifyUserToken(
     request: VerifyUserTokenRequest,
-  ): Promise<VerifyUserTokenResponse> {
-    const result = await this.authService.verifyUserToken(request.token);
-    return Response.success(result);
+  ) {
+    // const result = await this.authService.verifyUserToken(request.token);
+    // return Response.success(result);
   }
 }

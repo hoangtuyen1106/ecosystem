@@ -1,37 +1,24 @@
-import { MetadataKeys } from '@ecosystem/constants';
-import {
-  AUTHORIZER_SERVICE_NAME,
-  AuthorizerServiceClient,
-  Packages,
-} from '@ecosystem/grpc';
-import { getAccessToken } from '@ecosystem/utils';
+import { MetadataKeys, TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
+import { AuthResponse, TcpClient } from '@ecosystem/interfaces';
+import { getAccessToken, setUserData } from '@ecosystem/utils';
 import {
   CanActivate,
   ExecutionContext,
   Inject,
   Logger,
-  OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ClientGrpc } from '@nestjs/microservices';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, map, Observable } from 'rxjs';
 
-export class UserGuard implements CanActivate, OnModuleInit {
+export class UserGuard implements CanActivate {
   private readonly logger = new Logger(UserGuard.name);
-  private authorizerService: AuthorizerServiceClient;
 
   constructor(
     private readonly reflector: Reflector,
-    @Inject(Packages.AUTH) private clientAuth: ClientGrpc,
+    // @Inject(Packages.AUTH) private clientAuth: ClientGrpc,
+    @Inject(TCP_SERVICES.AUTH_SERVICE) private readonly authorizerClient: TcpClient,
   ) {}
-
-  onModuleInit() {
-    this.authorizerService =
-      this.clientAuth.getService<AuthorizerServiceClient>(
-        AUTHORIZER_SERVICE_NAME,
-      );
-  }
   
   canActivate(
     context: ExecutionContext,
@@ -46,26 +33,39 @@ export class UserGuard implements CanActivate, OnModuleInit {
       return true;
     }
 
-    return this.verifyToken(req);
+    return this.verifyUserToken(req);
   }
 
-  private async verifyToken(req: any): Promise<boolean> {
+  private async verifyUserToken(req: Request): Promise<boolean> {
     try {
       const token = getAccessToken(req);
-      const response = await firstValueFrom(
-        this.authorizerService.verifyUserToken({ token }),
-      );
 
-      const { data: result } = response;
+      if (!token) {
+        throw new UnauthorizedException('Missing token');
+      }
 
+      const result = await this.verifyToken(token);
       if (!result?.valid) {
         throw new UnauthorizedException('Token is invalid');
       }
+
+      setUserData(req, result);
 
       return true;
     } catch (error) {
       this.logger.error({ error });
       throw new UnauthorizedException('Token is invalid');
     }
+  }
+
+  private async verifyToken(token: string) {
+    return firstValueFrom(
+      this.authorizerClient
+        .send<AuthResponse, { data: string }>(
+          TCP_REQUEST_MESSAGE.AUTHORIZER.VERIFY_USER_TOKEN,
+          { data: token },
+        )
+        .pipe(map((data) => data.data)),
+    );
   }
 }

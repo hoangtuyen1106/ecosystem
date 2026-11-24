@@ -1,13 +1,24 @@
-import { AuthorizeResponse, JWTPayload } from '@ecosystem/grpc';
-import { LoginTcpRequest } from '@ecosystem/interfaces';
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
+import {
+  AuthResponse,
+  AuthResult,
+  GetUserByKeycloakIdTcpRequest,
+  IUser,
+  LoginTcpRequest,
+  TcpClient,
+  UserAuthInfoTcpResponse,
+} from '@ecosystem/interfaces';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import jwt, { Jwt, JwtPayload } from 'jsonwebtoken';
 import JwksRsa, { JwksClient } from 'jwks-rsa';
+import { firstValueFrom, map } from 'rxjs';
 import { KeycloakHttpService } from '../keycloak/keycloak-http.service';
-import { UsersService } from '../users/users.service';
-
-
 
 @Injectable()
 export class AuthService {
@@ -16,8 +27,9 @@ export class AuthService {
 
   constructor(
     private readonly keycloakHttpService: KeycloakHttpService,
-    private readonly userService: UsersService,
-    private readonly configService: ConfigService
+    @Inject(TCP_SERVICES.USER_ACCESS_SERVICE)
+    private readonly userAccessClient: TcpClient,
+    private readonly configService: ConfigService,
   ) {
     const host = this.configService.getOrThrow('KEYCLOAK_HOST');
     const realm = this.configService.get('KEYCLOAK_REALM');
@@ -27,7 +39,6 @@ export class AuthService {
       cache: true,
       rateLimit: true,
     });
-
   }
   async login(params: LoginTcpRequest) {
     const { username, password } = params;
@@ -43,66 +54,67 @@ export class AuthService {
     };
   }
 
-  async verifyUserToken(token: string): Promise<AuthorizeResponse> {
+  async verifyUserToken(token: string): Promise<AuthResponse> {
+    if (!token) {
+      throw new UnauthorizedException('Missing token');
+    }
+
     const decoded = jwt.decode(token, { complete: true }) as Jwt;
     if (!decoded || !decoded.header || !decoded.header?.kid) {
       throw new UnauthorizedException('Invalid token structure');
     }
-    this.logger.debug(decoded);
+
     try {
       const key = await this.jwksClient.getSigningKey(decoded.header.kid);
+
       const publicKey = key.getPublicKey();
       const payload = jwt.verify(token, publicKey, {
         algorithms: ['RS256'],
       }) as JwtPayload;
 
-      if (!payload.sub) {
-        throw new UnauthorizedException('Invalid token payload');
+      const keycloakId = payload.sub;
+
+      if(!keycloakId) {
+        throw new UnauthorizedException();
       }
 
-      const user = await this.userValidation(payload.sub);
+      const user = await this.userValidation(keycloakId);
 
       return {
         valid: true,
         metadata: {
-          keycloakId: user.id ?? undefined,
-          user: {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName ?? undefined,
-            email: user.email,
-            roles: user.roles.map(({ role }) => ({
-              name: role.name,
-              description: role.description ?? '',
-              permissions: role.permissions,
-            })),
-          },
-          jwt: {
-            iss: payload.iss ?? '',
-            aud: Array.isArray(payload.aud)
-              ? payload.aud.join(',')
-              : (payload.aud ?? ''),
-            iat: payload.iat ?? 0,
-            exp: payload.exp ?? 0,
-            sub: payload.sub,
-            atHash: payload['at_hash'] ?? '',
-            sid: payload['sid'] ?? '',
-            nonce: payload['nonce'] ?? '',
-            isExpired: payload.exp ? payload.exp * 1000 <= Date.now() : false,
-          },
+          user,
+          userId: user.id,
+          jwt: token,
+          permissions: []
         },
       };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error({ error });
       throw new UnauthorizedException('Invalid token');
     }
   }
 
   private async userValidation(keycloakId: string) {
-    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    const user = await this.getUserByKeycloakId(keycloakId);
+
+    this.logger.debug({ user });
+
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+
     return user;
+  }
+
+  private getUserByKeycloakId(keycloakId: string) {
+    return firstValueFrom(
+      this.userAccessClient
+        .send<
+          IUser,
+          string
+        >(TCP_REQUEST_MESSAGE.USER.GET_BY_KEYCLOAK_ID, keycloakId)
+        .pipe(map((data) => data.data)),
+    );
   }
 }

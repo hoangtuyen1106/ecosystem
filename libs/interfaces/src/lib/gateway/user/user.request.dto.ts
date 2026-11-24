@@ -18,6 +18,7 @@ import {
   IsEmail,
   IsEnum,
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
@@ -34,6 +35,13 @@ const USER_STATUS_VALUES = Object.values(USER_STATUS);
 const USER_GENDER_VALUES = Object.values(USER_GENDER);
 
 export class CreateUserRequestDto {
+  /**
+   * Server sinh (UUIDv7) — client không gửi. Không có validator nên
+   * `ValidationPipe({ whitelist: true })` sẽ loại bỏ nếu client truyền lên.
+   */
+  @ApiPropertyOptional({ readOnly: true, description: 'Server tự sinh (UUIDv7)' })
+  id?: string;
+
   @ApiProperty({ example: 'tuyennh' })
   @IsString()
   @IsNotEmpty({ message: 'Username không được để trống' })
@@ -46,10 +54,20 @@ export class CreateUserRequestDto {
   @MaxLength(255)
   email: string;
 
-  @ApiProperty({ type: [String] })
-  @IsString({ each: true })
+  @IsOptional()
   @IsArray()
-  roles: string[];
+  @ArrayUnique()
+  @IsInt({ each: true })
+  roleIds?: number[]; // ví dụ [1, 2]
+
+  /**
+   * Server lấy từ Keycloak khi tạo user — client không gửi.
+   */
+  @ApiPropertyOptional({
+    readOnly: true,
+    description: 'Server lấy từ Keycloak',
+  })
+  keycloakId?: string;
 
   @ApiProperty({ example: 'Tuyen@110695' })
   @IsStrongPassword()

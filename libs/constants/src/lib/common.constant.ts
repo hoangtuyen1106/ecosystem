@@ -1,3 +1,5 @@
+export const PORT = 3000;
+
 export const FIELD = 'field';
 export const FULL_INFO = 'full_info';
 export const LIST_INFO = 'list_info';
@@ -9,8 +11,6 @@ export const ACTIVE = 'active';
 export const INACTIVE = 'inactive';
 export const BLOCKED = 'blocked';
 export const PENDING = 'pending';
-
-export const PORT = 3000;
 
 export enum MetadataKeys {
   PROCESS_ID = 'processId',

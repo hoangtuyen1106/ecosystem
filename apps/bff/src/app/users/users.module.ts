@@ -10,11 +10,11 @@ import { TCP_PORT, TCP_SERVICES } from '@ecosystem/constants';
     GrpcClientsModule,
     ClientsModule.register([
       {
-        name: TCP_SERVICES.AUTH_SERVICE, // Tên token để inject
+        name: TCP_SERVICES.USER_ACCESS_SERVICE,
         transport: Transport.TCP,
         options: {
-          host: 'localhost', // Hoặc địa chỉ IP của user service
-          port: TCP_PORT.TCP_AUTH_PORT, // Port mà Orders service sẽ lắng nghe
+          host: 'localhost',
+          port: TCP_PORT.TCP_USER_ACCESS_PORT,
         },
       }
     ]),

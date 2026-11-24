@@ -18,6 +18,7 @@ enum USER {
   GET_ALL_CURSOR = 'user.get_all_cursor',
   GET_BY_ID = 'user.get_by_id',
   GET_BY_USER_ID = 'user.get_by_user_id',
+  GET_BY_KEYCLOAK_ID = 'user.get_by_keycloak_id',
   UPDATE = 'user.update',
   DELETE = 'user.delete',
   CHANGE_STATUS = 'user.change_status',

@@ -5,14 +5,11 @@ Chạy Nx qua npm để dùng đúng version trong workspace: `npx nx ...`.
 ## Khởi động
 
 ```bash
-# Chạy 5 app song song theo .env: bff 3000, auth 3001, executor 3002, products 3003, jobs 3004
+# Chạy 6 app song song theo .env: bff 3000, auth 3001, executor 3002, products 3003, jobs 3004, user-access 3005
 npm start
 
-# Dừng service (script chỉ kill 3000-3003: bff/auth/executor/products)
+# Dừng service (kill HTTP 3000-3005 và TCP 3103/3104)
 npm stop
-
-# jobs (3004) không nằm trong npm stop
-lsof -ti :3004 | xargs kill -9
 
 # Infra: postgres 5432, pulsar 6650, redis 6379, keycloak 8180
 npm run docker:infra
@@ -49,9 +46,9 @@ npx prettier --write .
 
 ```bash
 # Prisma - auth/jobs (migrate dev cho local)
-npx nx run auth:generate-prisma
-npx nx run auth:migrate-prisma                      # migrate dev, hỏi tên migration
-npx nx run auth:migrate-prisma --name=<mo_ta>       # đặt tên migration rõ nghĩa
+npx nx run user-access:generate-prisma
+npx nx run user-access:migrate-prisma               # migrate dev, hỏi tên migration
+npx nx run user-access:migrate-prisma --name=<mo_ta> # đặt tên migration rõ nghĩa
 npx nx run jobs:generate-prisma
 npx nx run jobs:migrate-prisma
 
@@ -80,7 +77,7 @@ npx nx run-many -t lint test build -p auth jobs products executor bff
 | Chạy toàn bộ app                 | `npm start`                                                  |
 | Chạy 1 app                       | `npx nx serve <app>`                                         |
 | Kiểm tra thay đổi trước khi push | `npx nx affected -t lint test build`                         |
-| Đổi schema auth/jobs             | `npx nx run <auth\|jobs>:migrate-prisma`                     |
+| Đổi schema user-access/jobs      | `npx nx run <user-access\|jobs>:migrate-prisma`              |
 | Đổi schema products              | `npx nx run products:generate-drizzle` rồi `migrate-drizzle` |
 | Đổi proto                        | `npx nx run grpc:generate-ts-proto`                          |
 | Xem port/target                  | `npx nx show project <project>`                              |

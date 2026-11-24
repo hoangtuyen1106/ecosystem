@@ -51,14 +51,34 @@ services:
       - 3000:3000
     environment:
       PORT: 3000
-      DATABASE_URL: postgresql://postgres:example@postgres:5432/auth
       AUTH_GRPC_SERVICE_URL: 0.0.0.0:5000
       JWT_SECRET: secret
       JWT_EXPIRATION_MS: 360000
+      TCP_HOST: 0.0.0.0
+      TCP_USER_ACCESS_HOST: user-access
       NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
+
+  user-access:
+    build:
+      context: .
+      dockerfile: apps/user-access/Dockerfile
+    ports:
+      - 3005:3005
+    environment:
+      PORT: 3005
+      DATABASE_URL: postgresql://postgres:example@postgres:5432/auth
+      TCP_HOST: 0.0.0.0
+      TCP_USER_ACCESS_PORT: 3104
+      TCP_AUTH_HOST: auth
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth:
+        condition: service_started
 
   jobs:
     build:

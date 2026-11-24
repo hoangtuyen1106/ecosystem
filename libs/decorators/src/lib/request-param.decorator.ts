@@ -5,8 +5,8 @@ export const RequestParams = createParamDecorator((param: string, ctx: Execution
 
   if (!param) {
     // Handle both { data: {...} } and direct object formats
-    return request.data || request;
+    return request.data.data || request.data || request;
   }
 
-  return request.data?.[param] || request[param];
+  return request.data.data[param] || request.data?.[param] || request[param];
 });

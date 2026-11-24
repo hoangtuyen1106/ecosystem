@@ -11,10 +11,10 @@ import { RolesService } from './roles.service';
 
 describe('RolesService - BFF', () => {
   let service: RolesService;
-  let authClient: jest.Mocked<TcpClient>;
+  let userAccessClient: jest.Mocked<TcpClient>;
 
   beforeEach(async () => {
-    authClient = {
+    userAccessClient = {
       send: jest.fn().mockReturnValue(
         of({ code: 'OK', statusCode: 200, data: { id: 1 } }),
       ),
@@ -24,7 +24,7 @@ describe('RolesService - BFF', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RolesService,
-        { provide: TCP_SERVICES.AUTH_SERVICE, useValue: authClient },
+        { provide: TCP_SERVICES.USER_ACCESS_SERVICE, useValue: userAccessClient },
       ],
     }).compile();
 
@@ -43,7 +43,7 @@ describe('RolesService - BFF', () => {
 
     const result = await firstValueFrom(service.create(body));
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.CREATE,
       body,
     );
@@ -57,7 +57,7 @@ describe('RolesService - BFF', () => {
   it('should send get all message', async () => {
     await firstValueFrom(service.findAll({ status: [ROLE_STATUS.ACTIVE] }));
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.GET_ALL,
       { status: [ROLE_STATUS.ACTIVE] },
     );
@@ -66,14 +66,14 @@ describe('RolesService - BFF', () => {
   it('should send get by id message', async () => {
     await firstValueFrom(service.findOne(1));
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.GET_BY_ID,
       1,
     );
   });
 
   it('should format dates in Asia/Ho_Chi_Minh timezone', async () => {
-    authClient.send.mockReturnValueOnce(
+    userAccessClient.send.mockReturnValueOnce(
       of({
         code: 'OK',
         statusCode: 200,
@@ -99,7 +99,7 @@ describe('RolesService - BFF', () => {
   });
 
   it('should format dates in nested arrays', async () => {
-    authClient.send.mockReturnValueOnce(
+    userAccessClient.send.mockReturnValueOnce(
       of({
         code: 'OK',
         statusCode: 200,
@@ -125,7 +125,7 @@ describe('RolesService - BFF', () => {
   it('should send update message with id in payload', async () => {
     await firstValueFrom(service.update(1, { name: 'admin' }));
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.UPDATE,
       { id: 1, name: 'admin' },
     );
@@ -134,7 +134,7 @@ describe('RolesService - BFF', () => {
   it('should send delete message', async () => {
     await firstValueFrom(service.remove(1));
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.DELETE,
       1,
     );
@@ -143,7 +143,7 @@ describe('RolesService - BFF', () => {
   it('should send change status message', async () => {
     await firstValueFrom(service.changeStatus(1, { status: ROLE_STATUS.INACTIVE }));
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.CHANGE_STATUS,
       { id: 1, status: ROLE_STATUS.INACTIVE },
     );
@@ -156,7 +156,7 @@ describe('RolesService - BFF', () => {
       }),
     );
 
-    expect(authClient.send).toHaveBeenCalledWith(
+    expect(userAccessClient.send).toHaveBeenCalledWith(
       TCP_REQUEST_MESSAGE.ROLE.SET_PERMISSIONS,
       {
         roleId: 1,

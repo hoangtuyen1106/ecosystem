@@ -18,16 +18,18 @@ paths:
 ```text
 ecosystem/
 ├── apps/
-│   ├── auth/                  # Xác thực, users, RBAC role (Prisma + TCP + gRPC)
+│   ├── auth/                  # Xác thực, Keycloak (TCP 3103 + gRPC)
 │   │   ├── src/app/
 │   │   │   ├── auth/          # resolver, service, controller, guards, strategies
-│   │   │   ├── users/         # users.controller (TCP), service, repositories, mappers
+│   │   │   └── keycloak/      # tích hợp Keycloak
+│   ├── user-access/           # CRUD user + RBAC role (Prisma + TCP 3104)
+│   │   ├── src/
+│   │   │   ├── user/          # users.controller (TCP), service, repositories
 │   │   │   ├── role/          # role.controller (TCP), service, repositories/, mappers/
-│   │   │   ├── keycloak/      # tích hợp Keycloak
-│   │   │   └── prisma/        # PrismaService (PrismaPg adapter), prisma-error.util.ts
+│   │   │   ├── prisma/        # PrismaService (PrismaPg adapter), prisma-error.util.ts
+│   │   │   └── generated/prisma/   # generated, không sửa tay
 │   │   ├── prisma/            # schema.prisma + migrations
-│   │   ├── prisma.config.ts
-│   │   └── src/generated/prisma/   # generated, không sửa tay
+│   │   └── prisma.config.ts
 │   ├── bff/                   # REST gateway (Swagger, health, throttler, auth)
 │   │   └── src/app/
 │   │       ├── health/
@@ -59,7 +61,7 @@ ecosystem/
 │   ├── prisma/                # placeholder
 │   ├── pulsar/                # client, consumer, messages
 │   └── redis/                 # module + service
-├── docker/init-db.sql         # tạo DB auth/jobs/products cho compose apps
+├── docker/init-db.sql         # tạo DB auth/users/jobs/products cho compose apps
 ├── scripts/                   # script thủ công (fibonacci.mjs)
 ├── charts/                    # Helm cũ, tên "jobber", chưa dùng trong CI
 ├── .github/workflows/ci.yml
@@ -73,7 +75,7 @@ ecosystem/
 
 ## Vị trí đặc thù
 
-- Prisma: schema ở `apps/{auth,jobs}/prisma/schema.prisma`, config ở `apps/{auth,jobs}/prisma.config.ts`, client generated ở `apps/{service}/src/generated/prisma`.
+- Prisma: schema ở `apps/{user-access,jobs}/prisma/schema.prisma`, config ở `apps/{user-access,jobs}/prisma.config.ts`, client generated ở `apps/{service}/src/generated/prisma`.
 - Drizzle: schema đặt cạnh feature (`apps/products/src/**/schema.ts`), migration trong `apps/products/drizzle`.
 - gRPC: proto nguồn ở `libs/grpc/src/lib/proto`; types sinh ra ở `libs/grpc/src/lib/types/proto` (commit cùng repo).
 - Upload runtime: `apps/jobs/uploads` (bị gitignore).
@@ -83,8 +85,8 @@ ecosystem/
 
 - Mỗi feature một module; resolver/controller/service/dto/model nằm cùng thư mục feature.
 - GraphQL model/input chỉ ở jobs; model dùng chung đặt trong `libs/graphql` (`AbstractModel`).
-- Repository pattern dùng ở auth (`apps/auth/src/app/users/repositories`, `apps/auth/src/app/role/repositories`).
-- Feature RBAC + User: auth chạy TCP (`*.controller.ts` dùng `@MessagePattern`), bff expose REST và map DTO ↔ TCP interface trong `libs/interfaces`. User dùng chung pattern với Role nhưng id UUID, cursor `UuidCursorPaginationDto`, xoá mềm.
+- Repository pattern dùng ở user-access (`apps/user-access/src/user/repositories`, `apps/user-access/src/role/repositories`).
+- Feature RBAC + User: user-access chạy TCP (`*.controller.ts` dùng `@MessagePattern`), bff expose REST và map DTO ↔ TCP interface trong `libs/interfaces`. User dùng chung pattern với Role nhưng id UUID, cursor `UuidCursorPaginationDto`, xoá mềm. Auth verify token gọi TCP `user.get_by_keycloak_id`.
 - products inject `DATABASE_CONNECTION`; không tạo Prisma client cho products.
 - Không sửa `src/generated/prisma`; sinh lại bằng target `generate-prisma`.
 - Không import chéo giữa các app; giao tiếp qua gRPC hoặc Pulsar. Code dùng chung đặt trong `libs/`.
@@ -95,7 +97,7 @@ ecosystem/
 | Cần thêm               | Vị trí                                                                                                                |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Resolver/GraphQL model | `apps/jobs/src/app/` + module tương ứng                                                                               |
-| Bảng Prisma            | `apps/{auth,jobs}/prisma/schema.prisma`                                                                               |
+| Bảng Prisma            | `apps/{user-access,jobs}/prisma/schema.prisma`                                                                        |
 | Bảng Drizzle           | `apps/products/src/<feature>/schema.ts`                                                                               |
 | gRPC method            | `libs/grpc/src/lib/proto/*.proto`, rồi regenerate types                                                               |
 | Job mới                | enum `libs/nestjs/src/lib/jobs.ts`, message `libs/pulsar/src/lib/messages`, job `apps/jobs`, consumer `apps/executor` |

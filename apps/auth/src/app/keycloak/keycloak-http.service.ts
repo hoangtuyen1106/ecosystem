@@ -45,7 +45,7 @@ export class KeycloakHttpService {
         },
       },
     );
-
+    
     return data;
   }
 
@@ -102,8 +102,6 @@ export class KeycloakHttpService {
     if (!keycloakId) {
       throw new InternalServerErrorException('Could not create keycloak user');
     }
-
-    this.logger.debug('Created user with id: ' + keycloakId);
 
     return keycloakId;
   }
