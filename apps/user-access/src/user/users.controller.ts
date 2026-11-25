@@ -3,7 +3,6 @@ import { RequestParams } from '@ecosystem/decorators';
 import { TcpLoggingInterceptor } from '@ecosystem/interceptors';
 import {
   CreateUserTcpRequest,
-  IUser,
   Response
 } from '@ecosystem/interfaces';
 import { Controller, UseInterceptors } from '@nestjs/common';

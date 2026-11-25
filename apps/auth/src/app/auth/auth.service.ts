@@ -1,12 +1,9 @@
 import { TCP_REQUEST_MESSAGE, TCP_SERVICES } from '@ecosystem/constants';
 import {
   AuthResponse,
-  AuthResult,
-  GetUserByKeycloakIdTcpRequest,
   IUser,
   LoginTcpRequest,
-  TcpClient,
-  UserAuthInfoTcpResponse,
+  TcpClient
 } from '@ecosystem/interfaces';
 import {
   Inject,
@@ -75,7 +72,7 @@ export class AuthService {
       const keycloakId = payload.sub;
 
       if(!keycloakId) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException('Invalid keycloakId');
       }
 
       const user = await this.userValidation(keycloakId);
@@ -85,7 +82,7 @@ export class AuthService {
         metadata: {
           user,
           userId: user.id,
-          jwt: token,
+          jwt: payload,
           permissions: []
         },
       };
@@ -98,7 +95,7 @@ export class AuthService {
   private async userValidation(keycloakId: string) {
     const user = await this.getUserByKeycloakId(keycloakId);
 
-    this.logger.debug({ user });
+    this.logger.debug('User info >>>> ' + JSON.stringify(user));
 
     if (!user) {
       throw new UnauthorizedException('User not found');

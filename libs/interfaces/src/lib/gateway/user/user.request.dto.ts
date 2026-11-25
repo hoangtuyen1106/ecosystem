@@ -54,11 +54,12 @@ export class CreateUserRequestDto {
   @MaxLength(255)
   email: string;
 
+  @ApiPropertyOptional({ type: [Number], example: [1, 2] })
   @IsOptional()
   @IsArray()
   @ArrayUnique()
   @IsInt({ each: true })
-  roleIds?: number[]; // ví dụ [1, 2]
+  roleIds?: number[];
 
   /**
    * Server lấy từ Keycloak khi tạo user — client không gửi.
@@ -67,6 +68,8 @@ export class CreateUserRequestDto {
     readOnly: true,
     description: 'Server lấy từ Keycloak',
   })
+  @IsOptional()
+  @IsString()
   keycloakId?: string;
 
   @ApiProperty({ example: 'Tuyen@110695' })

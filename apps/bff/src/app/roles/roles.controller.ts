@@ -1,5 +1,7 @@
 import { ROLE_STATUS } from '@ecosystem/constants';
+import { UserData } from '@ecosystem/decorators';
 import {
+  AuthMetaData,
   ChangeRoleStatusRequestDto,
   CreateRoleRequestDto,
   GetRolesCursorQueryDto,
@@ -16,6 +18,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   ParseIntPipe,
   Patch,
@@ -36,6 +39,7 @@ import { RolesService } from './roles.service';
 @ApiTags('Roles')
 @Controller('roles')
 export class RolesController {
+  private readonly logger = new Logger(RolesController.name);
   constructor(private readonly rolesService: RolesService) {}
 
   @Authorization({ secured: true })
@@ -56,7 +60,9 @@ export class RolesController {
     isArray: true,
   })
   @ApiOkResponse({ type: ResponseDto<RoleListOffsetTcpResponse> })
-  findAll(@Query() query: GetRolesOffsetQueryDto) {
+  findAll(@Query() query: GetRolesOffsetQueryDto, @UserData() userData: AuthMetaData) {
+    // Logger.debug('User data', userData);
+    this.logger.debug('User data >>>>>>' + JSON.stringify(userData));
     return this.rolesService.findAll(query);
   }
 
