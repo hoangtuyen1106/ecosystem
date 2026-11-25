@@ -74,6 +74,26 @@ Quy ước hiện tại:
 - `searchUnicode` ghi từ `username/email/firstName/lastName/phone` bằng `StringUtil.toSearchKey`, lọc `search` bằng `StringUtil.formatUnicode(search, { lowercase: true })`.
 - Enum Prisma member **chữ thường**; không dùng `toUpperCase()` khi ghi `gender`/`status`.
 
+## Xử lý lỗi khi gọi Keycloak (luồng tạo user)
+
+Luồng: `bff POST /users` → TCP `user.create` → `UsersService.create` → TCP `keycloak.create_user` (auth 3103) → Keycloak Admin API → Prisma. Keycloak tạo **trước** DB nên cần chống orphan.
+
+Khi thêm/sửa lỗi Keycloak:
+
+1. Map lỗi ngay trong `apps/auth/src/app/keycloak/keycloak-http.service.ts` (không để `AxiosError` thoát ra):
+   - 409 `User exists with same email/username` → `ConflictException` + `ERROR_CODE.USER_ALREADY_EXISTS`.
+   - 400 password policy / invalid user representation → `BadRequestException` (code `PASSWORD_POLICY_VIOLATION` / `INVALID_USER_DATA`).
+   - 401/403/404 → lỗi cấu hình server (500), log `errorMessage`.
+   - 429 → 503 + `Retry-After`; 5xx/`ECONNREFUSED`/`ETIMEDOUT` → 502/503 `KEYCLOAK_UNAVAILABLE`.
+   - Luôn log `status` + `errorMessage` gốc; client chỉ nhận code sạch.
+2. Bổ sung `ERROR_CODE` Keycloak vào `libs/constants/src/lib/enum/error-code.enum.ts`.
+3. Đảm bảo lỗi qua TCP giữ được status: `KeycloakController` đã gắn `TcpLoggingInterceptor`; interceptor phải xuất `statusCode` dạng **number** (không dùng `AxiosError.code` như `ERR_BAD_REQUEST`).
+4. Chống orphan trong `UsersService.create`: validate `roleIds` **trước** khi gọi Keycloak; nếu ghi DB fail thì gọi message `keycloak.delete_user` để xoá bù; compensation fail thì log `keycloakId` và trả lỗi nêu rõ.
+5. Cấu hình HTTP client: `timeout: 5000`; cache admin token tới `expires_in − 30s`; chỉ retry exchange token (idempotent).
+6. Test: mock axios cho 409/400/401/403/429/timeout/5xx; test DB fail → có gọi delete bù; `npx nx test auth` + `npx nx test bff`.
+
+Chẩn đoán nhanh (admin token, tìm/xoá user orphan): xem [`troubleshooting.md`](troubleshooting.md) mục Keycloak.
+
 ## Sửa gRPC contract
 
 1. Sửa proto trong `libs/grpc/src/lib/proto/*.proto`.

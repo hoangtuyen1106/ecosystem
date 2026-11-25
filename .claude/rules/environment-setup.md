@@ -33,7 +33,7 @@ Không commit `.env` — toàn bộ `apps/*/.env` đã bị gitignore.
 
 | App      | Biến bắt buộc                                                                                                                                 |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| auth     | `PORT`, `AUTH_GRPC_SERVICE_URL`, `JWT_SECRET`, `JWT_EXPIRATION_MS`; tùy chọn `SECURE_COOKIE`, `TCP_AUTH_PORT` (mặc định 3103), `TCP_USER_ACCESS_HOST` |
+| auth     | `PORT`, `AUTH_GRPC_SERVICE_URL`, `JWT_SECRET`, `JWT_EXPIRATION_MS`, `KEYCLOAK_HOST`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET` (login + verify JWKS + Admin API tạo user); tùy chọn `SECURE_COOKIE`, `TCP_AUTH_PORT` (mặc định 3103), `TCP_USER_ACCESS_HOST` |
 | user-access | `PORT`, `DATABASE_URL`, `TCP_HOST`, `TCP_USER_ACCESS_PORT` (mặc định 3104), `TCP_AUTH_HOST`; Keycloak gọi qua TCP auth nên không cần `KEYCLOAK_*` |
 | jobs     | `PORT`, `DATABASE_URL`, `JOBS_GRPC_SERVICE_URL`, `AUTH_GRPC_SERVICE_URL`, `PULSAR_SERVICE_URL`                                                |
 | executor | `PORT`, `JOBS_GRPC_SERVICE_URL`, `PRODUCTS_GRPC_SERVICE_URL`, `PULSAR_SERVICE_URL`                                                            |
@@ -57,7 +57,7 @@ auth mở TCP `TCP_AUTH_PORT` (local `.env`: 3103) cho `authorizer.*`/`keycloak.
 
 Port local lấy từ `apps/*/.env`; trong compose, service gọi nhau bằng hostname (`auth:5000`, `jobs:5001`, `products:5002`, `pulsar:6650`).
 
-Infra: postgres `5432`, pulsar `6650`, redis `6379`, keycloak `8180` (chưa dùng trong code).
+Infra: postgres `5432`, pulsar `6650`, redis `6379`, keycloak `8180` (auth dùng cho login/JWKS/admin tạo user; realm `Ecosystem`, client `ecosystem_app`).
 
 ## URL truy cập
 
@@ -73,12 +73,14 @@ Infra: postgres `5432`, pulsar `6650`, redis `6379`, keycloak `8180` (chưa dùn
 | user-access             | TCP `localhost:3104` (roles/users); HTTP 3005 không có route nghiệp vụ |
 | products                | gRPC `localhost:5001`; không có HTTP API                                              |
 | executor                | Không HTTP API                                                                        |
+| Keycloak Admin console  | `http://localhost:8180` (admin `admin`/`admin`); realm `Ecosystem`, client `ecosystem_app` |
 
 ## Docker apps
 
 - `docker-compose.apps.yaml` tạo DB qua `docker/init-db.sql`, có healthcheck cho postgres/pulsar/redis và entrypoint chạy migration.
 - Có service `user-access` (PORT 3005, TCP 3104, chạy `prisma migrate deploy` trong entrypoint); auth không còn DATABASE_URL/migration.
 - Không có service `bff`; bff hiện chỉ chạy local bằng `npm start` hoặc `nx serve bff`.
+- Không có service `keycloak` trong compose apps; auth container cần `KEYCLOAK_HOST` trỏ tới Keycloak thật (local `http://localhost:8180`, trong mạng compose là `http://keycloak:8080` nếu thêm service).
 
 ## CI
 

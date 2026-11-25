@@ -59,6 +59,7 @@ Import qua alias `@ecosystem/*` (xem `tsconfig.base.json`). `main.ts` phải b�
 - `UserRole` là bảng nối user ↔ role; FK `ON DELETE RESTRICT`, `ON UPDATE RESTRICT`; chưa có API gán role cho user (response user chỉ **đọc** role).
 - **user-access** cũng xử lý CRUD user (tương tự role): `UsersController` (`@MessagePattern`) → `UsersService` → `UserRepository` (Prisma). Message: `user.create`, `user.get_all`, `user.get_all_cursor`, `user.get_by_id`, `user.get_by_user_id`, `user.get_by_keycloak_id` (auth verify token), `user.update`, `user.delete`, `user.change_status`.
 - **auth** verify token gọi TCP `user.get_by_keycloak_id` tới user-access; user-access tạo Keycloak user gọi TCP `keycloak.create_user` tới auth (3103).
+- **Luồng tạo user có 2 hệ thống dữ liệu**: Keycloak (danh tính) và Postgres (hồ sơ). Keycloak tạo **trước** rồi mới validate role/ghi DB, nên mọi lỗi sau bước Keycloak có thể để lại user mồ côi; xem kế hoạch xử lý ở `CLAUDE.md` mục Keycloak và `troubleshooting.md`.
 - **bff** expose REST `/api/v1/users` (create / list offset + cursor / get by id / update / soft delete / change status). `User.id` là UUID nên cursor dùng `UuidCursorPaginationDto`; xoá là soft delete (`deleted = true`); `PATCH /users/:id` chỉ sửa profile field (không password/status).
 - Auth guard ở bff: `UserGuard` đăng ký `APP_GUARD`, đọc decorator `@Authorization({ secured })`; route `secured` gọi gRPC `AuthorizerService.VerifyUserToken`.
 
@@ -89,7 +90,7 @@ Import qua alias `@ecosystem/*` (xem `tsconfig.base.json`). `main.ts` phải b�
   - Enum Prisma dùng **member chữ thường** (`UserGender.male`, `UserStatus.active`, `RoleStatus.inactive`) để giá trị client trùng `USER_GENDER`/`USER_STATUS`/`ROLE_STATUS` ở `libs/constants`; không dùng `@map` cho enum.
 - **Drizzle** (products): `drizzle-orm` + `drizzle-kit`; kết nối qua token `DATABASE_CONNECTION`, schema đặt cạnh feature (`src/**/schema.ts`), migration trong `apps/products/drizzle`.
 - **Redis**: storage cho `ThrottlerProvider` (bff) và `RedisService` dùng chung.
-- **Keycloak** có trong `docker-compose.yaml` nhưng chưa được code sử dụng.
+- **Keycloak 25** (`docker-compose.yaml`, cổng 8180, realm `Ecosystem`, client `ecosystem_app`): `auth` dùng cho login (`exchangeUserToken`), verify token (`jwks-rsa` lấy JWKS từ realm) và Admin API tạo user (`KeycloakHttpService.createUser`). Chưa dùng cho update/delete; `user-access` không gọi trực tiếp Keycloak mà qua TCP `keycloak.create_user` tới auth.
 
 ## Cross-cutting
 

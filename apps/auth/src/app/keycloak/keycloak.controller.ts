@@ -1,11 +1,13 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseInterceptors } from '@nestjs/common';
 import { KeycloakHttpService } from './keycloak-http.service';
 import { TCP_REQUEST_MESSAGE } from '@ecosystem/constants';
 import { MessagePattern } from '@nestjs/microservices';
 import { RequestParams } from '@ecosystem/decorators';
 import { CreateKeycloakUserTcpReq, Response } from '@ecosystem/interfaces';
+import { TcpLoggingInterceptor } from '@ecosystem/interceptors';
 
 @Controller('keycloak')
+@UseInterceptors(TcpLoggingInterceptor)
 export class KeycloakController {
     constructor(private readonly keycloakHttpService: KeycloakHttpService) {}
 

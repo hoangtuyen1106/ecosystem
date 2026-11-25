@@ -26,6 +26,9 @@
 | `gender`/`status` user lưu sai giá trị             | Code cũ gọi `.toUpperCase()` trong khi Prisma enum đã là chữ thường (`male`, `active`)            | Không dùng `toUpperCase()`; truyền thẳng giá trị `USER_GENDER`/`USER_STATUS`    |
 | Update/delete user không đổi bên Keycloak          | Chỉ `create` gọi Keycloak; update/delete hiện chỉ sửa DB                                          | Cần bổ sung đồng bộ Keycloak khi triển khai thật                                |
 | Tạo user báo email trùng dù DB không unique        | `email` không còn `@unique`; service check trùng bằng `findFirst` (create + update loại trừ self) | Đây là validate nghiệp vụ; nếu cần chặn tuyệt đối phải thêm unique index/DB     |
+| `POST /users` trả 500 "Internal server error" dù Keycloak trả 409 | Chuỗi lỗi: `AxiosError` 409 → `tcpLogging.interceptor` lấy `error.code = 'ERR_BAD_REQUEST'` (string) → `ExceptionInterceptor` dùng làm HTTP status → mất message. `KeycloakController` đã gắn `TcpLoggingInterceptor` nhưng chưa sửa logic lấy status | Sửa Phase 2 (status number) trong `CLAUDE.md` mục Keycloak. Tạm thời kiểm tra Keycloak trực tiếp (mục Keycloak bên dưới) |
+| User tồn tại bên Keycloak nhưng DB `users` không có (orphan) | Keycloak tạo trước, validate `roleIds`/ghi DB sau (`UsersService.create` → `user.repository.create`); lỗi DB để lại user mồ côi, retry tiếp theo nhận 409 | Xoá user orphan trong Keycloak rồi tạo lại, hoặc thêm compensation `keycloak.delete_user` (Phase 3) |
+| `keycloak.create_user` treo lâu / token admin hết hạn giữa chừng | Axios không đặt timeout; mỗi lần tạo user exchange client token mới, không cache | Thêm `timeout` + cache token theo `expires_in − 30s` (Phase 1) |
 
 ## Prisma (user-access, jobs)
 
@@ -40,6 +43,30 @@
 - Lỗi `P2002` dù đã kiểm tra trùng tên → race giữa `existsByName` và insert; DB unique vẫn là chốt chặn, service map thành 400.
 - Xoá role còn `user_roles` → repository đã xử lý transaction; nếu gọi Prisma trực tiếp phải tự `userRole.deleteMany` trước (FK RESTRICT).
 - `email`/`username` không còn unique → dùng `findFirst`, không dùng `findUnique({ where: { email } })`.
+
+## Keycloak
+
+Keycloak chạy ở `http://localhost:8180` (admin `admin`/`admin`), realm `Ecosystem`, client `ecosystem_app`; cấu hình đọc từ `apps/auth/.env` (`KEYCLOAK_HOST`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET`).
+
+- **Lấy admin token + kiểm tra user theo email**:
+  ```bash
+  set -a && . apps/auth/.env && set +a
+  AT=$(curl -s -X POST "$KEYCLOAK_HOST/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+    -H 'Content-Type: application/x-www-form-urlencoded' \
+    -d "client_id=$KEYCLOAK_CLIENT_ID" -d "client_secret=$KEYCLOAK_CLIENT_SECRET" \
+    -d 'grant_type=client_credentials' | jq -r .access_token)
+  curl -s -H "Authorization: Bearer $AT" \
+    "$KEYCLOAK_HOST/admin/realms/$KEYCLOAK_REALM/users?email=<email>"
+  ```
+- **Xoá user orphan** (Keycloak có, DB không có) rồi tạo lại:
+  ```bash
+  curl -i -X DELETE -H "Authorization: Bearer $AT" \
+    "$KEYCLOAK_HOST/admin/realms/$KEYCLOAK_REALM/users/<keycloak-id>"
+  ```
+- **409 `User exists with same email/username`**: Keycloak chặn trùng; code hiện chưa map nên bff trả 500 chung. Đối chiếu user trong Keycloak và DB trước khi retry.
+- **401/403 khi gọi Admin API**: 401 thường do `KEYCLOAK_CLIENT_SECRET` sai; 403 do service account của client thiếu role `realm-management` (`manage-users`, `view-users`).
+- **Token verify fail dù token còn hạn**: kiểm tra `KEYCLOAK_HOST`/`KEYCLOAK_REALM` để auth lấy đúng JWKS; xem thêm mục GraphQL / auth.
+- **Keycloak không có trong `docker-compose.apps.yaml`**: chỉ có ở `docker-compose.yaml` (infra); nếu chạy auth trong compose phải thêm service/`KEYCLOAK_HOST=http://keycloak:8080`.
 
 ## Drizzle (products)
 
